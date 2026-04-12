@@ -1,4 +1,4 @@
-name: Keep Render Alive
+name: Keep Fly.io Alive
 
 on:
   schedule:
@@ -11,4 +11,4 @@ jobs:
     timeout-minutes: 1
     steps:
       - name: Ping API
-        run: curl -sf --max-time 30 "${{ secrets.API_URL }}/api/news/get-all-news?limit=1" > /dev/null
+        run: curl -sf --max-time 30 "https://newsapp-api.fly.dev/api/news/get-all-news?limit=1" > /dev/null
