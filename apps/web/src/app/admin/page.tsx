@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation';
 import { UserRole } from '@newsapp/shared';
 import UserList from '@/components/admin/UserList';
 import FetchNews from '@/components/admin/FetchNews';
+import AddNews from '@/components/admin/AddNews';
 
 export default function AdminPage() {
   const user = useAppSelector((state) => state.auth.user);
@@ -16,19 +17,23 @@ export default function AdminPage() {
   }
 
   return (
-    <Container sx={{ mt: 4 }}>
-      <Typography variant="h4" gutterBottom>
+    <Container sx={{ mt: 4, mb: 8 }}>
+      <Typography variant="h4" sx={{ mb: 4 }}>
         Admin Dashboard
       </Typography>
 
-      <Typography variant="h5" sx={{ mt: 3, mb: 2 }}>
-        Users
-      </Typography>
-      <UserList />
+      <AddNews />
 
       <Divider sx={{ my: 4 }} />
 
       <FetchNews />
+
+      <Divider sx={{ my: 4 }} />
+
+      <Typography variant="h5" sx={{ mb: 2 }}>
+        Users
+      </Typography>
+      <UserList />
     </Container>
   );
 }
