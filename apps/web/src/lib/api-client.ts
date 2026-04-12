@@ -8,17 +8,7 @@ export const apiClient = axios.create({
   timeout: 15000,
 });
 
-apiClient.interceptors.request.use((config) => {
-  if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('accessToken');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-  }
-  return config;
-});
-
-let refreshPromise: Promise<string> | null = null;
+let refreshPromise: Promise<void> | null = null;
 
 apiClient.interceptors.response.use(
   (response) => response,
@@ -31,26 +21,15 @@ apiClient.interceptors.response.use(
       if (!refreshPromise) {
         refreshPromise = axios
           .get(`${API_URL}/api/user/refresh`, { withCredentials: true })
-          .then((res) => {
-            const token = res.data.data.accessToken as string;
-            localStorage.setItem('accessToken', token);
-            return token;
-          })
-          .catch((err) => {
-            localStorage.removeItem('accessToken');
-            throw err;
-          })
+          .then(() => {})
+          .catch(() => {})
           .finally(() => {
             refreshPromise = null;
           });
       }
 
       try {
-        const newToken = await refreshPromise;
-        originalRequest.headers = {
-          ...originalRequest.headers,
-          Authorization: `Bearer ${newToken}`,
-        };
+        await refreshPromise;
         return apiClient(originalRequest);
       } catch {
         return Promise.reject(error);

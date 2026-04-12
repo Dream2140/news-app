@@ -21,9 +21,7 @@ export const loginUser = createAsyncThunk(
   async (form: { email: string; password: string }, { rejectWithValue }) => {
     try {
       const response = await apiClient.post('/user/login', form);
-      const { accessToken, user } = response.data.data;
-      localStorage.setItem('accessToken', accessToken);
-      return user as IUserDto;
+      return response.data.data.user as IUserDto;
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } } };
       return rejectWithValue(err.response?.data?.message ?? 'Login failed');
@@ -36,9 +34,7 @@ export const registerUser = createAsyncThunk(
   async (form: { nickname: string; email: string; password: string }, { rejectWithValue }) => {
     try {
       const response = await apiClient.post('/user/register', form);
-      const { accessToken, user } = response.data.data;
-      localStorage.setItem('accessToken', accessToken);
-      return user as IUserDto;
+      return response.data.data.user as IUserDto;
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } } };
       return rejectWithValue(err.response?.data?.message ?? 'Registration failed');
@@ -49,11 +45,8 @@ export const registerUser = createAsyncThunk(
 export const refreshAuth = createAsyncThunk('auth/refresh', async (_, { rejectWithValue }) => {
   try {
     const response = await apiClient.get('/user/refresh');
-    const { accessToken, user } = response.data.data;
-    localStorage.setItem('accessToken', accessToken);
-    return user as IUserDto;
+    return response.data.data.user as IUserDto;
   } catch {
-    localStorage.removeItem('accessToken');
     return rejectWithValue('Session expired');
   }
 });
@@ -66,7 +59,6 @@ const authSlice = createSlice({
       state.user = null;
       state.isAuthenticated = false;
       state.error = null;
-      localStorage.removeItem('accessToken');
       apiClient.post('/user/logout').catch(() => {});
     },
     clearError(state) {

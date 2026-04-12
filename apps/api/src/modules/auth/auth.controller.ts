@@ -19,6 +19,7 @@ import { LoginDto } from './dto/login.dto';
 import { ForgotPasswordDto, ResetPasswordDto } from './dto/forgot-password.dto';
 import { JwtRefreshGuard } from './strategies/jwt-auth.guard';
 
+const ACCESS_TOKEN_MAX_AGE = 24 * 60 * 60 * 1000; // 1 day
 const REFRESH_TOKEN_MAX_AGE = 30 * 24 * 60 * 60 * 1000; // 30 days
 
 @Controller('user')
@@ -32,7 +33,7 @@ export class AuthController {
   @Throttle({ default: { limit: 5, ttl: 60000 } })
   async register(@Body() dto: RegisterDto, @Res({ passthrough: true }) res: Response) {
     const result = await this.authService.register(dto);
-    this.setRefreshTokenCookie(res, result.refreshToken);
+    this.setTokenCookies(res, result.accessToken, result.refreshToken);
     return result;
   }
 
@@ -41,7 +42,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
     const result = await this.authService.login(dto);
-    this.setRefreshTokenCookie(res, result.refreshToken);
+    this.setTokenCookies(res, result.accessToken, result.refreshToken);
     return result;
   }
 
@@ -50,6 +51,7 @@ export class AuthController {
   async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const refreshToken = req.cookies?.refreshToken;
     const result = await this.authService.logout(refreshToken);
+    res.clearCookie('accessToken');
     res.clearCookie('refreshToken');
     return result;
   }
@@ -59,7 +61,7 @@ export class AuthController {
   async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const refreshToken = req.cookies?.refreshToken;
     const result = await this.authService.refresh(refreshToken);
-    this.setRefreshTokenCookie(res, result.refreshToken);
+    this.setTokenCookies(res, result.accessToken, result.refreshToken);
     return result;
   }
 
@@ -84,12 +86,22 @@ export class AuthController {
     res.redirect(`${frontendUrl}/auth/activated`);
   }
 
-  private setRefreshTokenCookie(res: Response, token: string) {
-    res.cookie('refreshToken', token, {
+  private setTokenCookies(res: Response, accessToken: string, refreshToken: string) {
+    const isProduction = this.configService.get('NODE_ENV') === 'production';
+    const sameSite = isProduction ? 'none' : 'lax';
+
+    res.cookie('accessToken', accessToken, {
+      maxAge: ACCESS_TOKEN_MAX_AGE,
+      httpOnly: true,
+      secure: isProduction,
+      sameSite,
+    });
+
+    res.cookie('refreshToken', refreshToken, {
       maxAge: REFRESH_TOKEN_MAX_AGE,
       httpOnly: true,
-      secure: this.configService.get('NODE_ENV') === 'production',
-      sameSite: 'strict',
+      secure: isProduction,
+      sameSite,
     });
   }
 }

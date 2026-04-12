@@ -10,13 +10,9 @@ export default function AuthInitializer({ children }: { children: React.ReactNod
   const attempted = useRef(false);
 
   useEffect(() => {
-    if (attempted.current) return;
+    if (attempted.current || isAuthenticated) return;
     attempted.current = true;
-
-    const hasToken = typeof window !== 'undefined' && localStorage.getItem('accessToken');
-    if (hasToken && !isAuthenticated) {
-      dispatch(refreshAuth());
-    }
+    dispatch(refreshAuth());
   }, [dispatch, isAuthenticated]);
 
   return <>{children}</>;
