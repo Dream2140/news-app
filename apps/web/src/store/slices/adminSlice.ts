@@ -26,10 +26,13 @@ export const deleteUser = createAsyncThunk('admin/deleteUser', async (userId: st
 
 export const fetchExternalNews = createAsyncThunk(
   'admin/fetchExternal',
-  async (source: 'cybersport' | 'guardian') => {
-    const endpoint =
-      source === 'cybersport' ? '/news/update-from-cybersport' : '/news/update-from-guardian';
-    const response = await apiClient.get(endpoint);
+  async (source: 'cybersport' | 'currents' | 'all') => {
+    const endpoints: Record<string, string> = {
+      cybersport: '/news/update-from-cybersport',
+      currents: '/news/update-from-currents',
+      all: '/news/fetch-all-sources',
+    };
+    const response = await apiClient.get(endpoints[source] ?? endpoints.all);
     return response.data.data;
   },
 );

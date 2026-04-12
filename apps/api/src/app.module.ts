@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { ScheduleModule } from '@nestjs/schedule';
 import { APP_GUARD } from '@nestjs/core';
 import { join } from 'path';
 import * as Joi from 'joi';
@@ -29,7 +30,7 @@ import { ExternalNewsModule } from './modules/external-news/external-news.module
         API_URL: Joi.string().required(),
         FRONTEND_URL: Joi.string().default('http://localhost:3000'),
         CORS_ORIGINS: Joi.string().default('http://localhost:3000'),
-        GUARDIAN_API_KEY: Joi.string().optional(),
+        CURRENTS_API_KEY: Joi.string().optional(),
       }),
     }),
     MongooseModule.forRootAsync({
@@ -38,6 +39,7 @@ import { ExternalNewsModule } from './modules/external-news/external-news.module
         uri: configService.get<string>('DB_URL'),
       }),
     }),
+    ScheduleModule.forRoot(),
     ThrottlerModule.forRoot({
       throttlers: [{ ttl: 60000, limit: 100 }],
     }),

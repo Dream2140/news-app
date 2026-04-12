@@ -5,14 +5,14 @@ export interface INews {
   publishedAt: number;
   slug: string;
   image: string;
-  category: string[];
+  category: string;
 }
 
 export interface CreateNewsDto {
   title: string;
   text: string;
   slug: string;
-  category: string[];
+  category: string;
   image?: string;
 }
 

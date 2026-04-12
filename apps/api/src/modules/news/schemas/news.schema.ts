@@ -22,8 +22,8 @@ export class News {
   @Prop()
   image: string;
 
-  @Prop({ type: [String], default: [] })
-  category: string[];
+  @Prop({ default: '' })
+  category: string;
 }
 
 export const NewsSchema = SchemaFactory.createForClass(News);

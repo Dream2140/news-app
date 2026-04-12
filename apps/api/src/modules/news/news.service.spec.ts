@@ -32,7 +32,7 @@ describe('NewsService', () => {
 
   describe('create', () => {
     it('should create news with image path', async () => {
-      const dto = { title: 'Test', text: 'Content', category: ['cybersport'] };
+      const dto = { title: 'Test', text: 'Content', category: 'cybersport' };
       mockNewsModel.create.mockResolvedValue({ ...dto, _id: '123' });
 
       await service.create(dto, '/uploads/test.jpg');

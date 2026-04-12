@@ -47,7 +47,7 @@ export class CybersportProvider {
       slug: item.attributes.slug,
       image: CYBERSPORT_IMAGE_URL + item.attributes.image,
       text: results[idx]?.status === 'fulfilled' ? results[idx].value : '',
-      category: ['cybersport'],
+      category: 'cybersport',
     }));
   }
 

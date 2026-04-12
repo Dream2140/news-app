@@ -1,4 +1,4 @@
-import { IsArray, IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 
 export class UpdateNewsDto {
   @IsOptional()
@@ -14,9 +14,8 @@ export class UpdateNewsDto {
   slug?: string;
 
   @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  category?: string[];
+  @IsString()
+  category?: string;
 
   @IsOptional()
   @IsString()

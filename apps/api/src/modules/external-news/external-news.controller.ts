@@ -16,8 +16,13 @@ export class ExternalNewsController {
     return this.externalNewsService.fetchFromCybersport();
   }
 
-  @Get('update-from-guardian')
-  async fetchFromGuardian() {
-    return this.externalNewsService.fetchFromGuardian();
+  @Get('update-from-currents')
+  async fetchFromCurrents() {
+    return this.externalNewsService.fetchFromCurrents();
+  }
+
+  @Get('fetch-all-sources')
+  async fetchAllSources() {
+    return this.externalNewsService.handleScheduledFetch();
   }
 }
