@@ -12,9 +12,12 @@ import {
   Typography,
 } from '@mui/material';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import { apiClient } from '@/lib/api-client';
 import { useAppDispatch, useAppSelector } from '@/hooks/useAppDispatch';
 import { loginUser, registerUser, clearError } from '@/store/slices/authSlice';
-import { closeModal } from '@/store/slices/uiSlice';
+import { closeModal, showSnackbar } from '@/store/slices/uiSlice';
+
+type ModalMode = 'login' | 'register' | 'forgot';
 
 interface LoginModalProps {
   open: boolean;
@@ -24,15 +27,32 @@ export default function LoginModal({ open }: LoginModalProps) {
   const dispatch = useAppDispatch();
   const { isLoading, error } = useAppSelector((state) => state.auth);
 
-  const [isLoginMode, setIsLoginMode] = useState(true);
+  const [mode, setMode] = useState<ModalMode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [nickname, setNickname] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (isLoginMode) {
+    if (mode === 'forgot') {
+      setForgotLoading(true);
+      try {
+        await apiClient.post('/user/forgot-password', { email });
+        dispatch(
+          showSnackbar({ message: 'Reset link sent! Check your email.', severity: 'success' }),
+        );
+        handleClose();
+      } catch {
+        dispatch(showSnackbar({ message: 'Failed to send reset email', severity: 'error' }));
+      } finally {
+        setForgotLoading(false);
+      }
+      return;
+    }
+
+    if (mode === 'login') {
       const result = await dispatch(loginUser({ email, password }));
       if (loginUser.fulfilled.match(result)) {
         dispatch(closeModal());
@@ -51,6 +71,7 @@ export default function LoginModal({ open }: LoginModalProps) {
     setEmail('');
     setPassword('');
     setNickname('');
+    setMode('login');
     dispatch(clearError());
   };
 
@@ -58,6 +79,9 @@ export default function LoginModal({ open }: LoginModalProps) {
     dispatch(closeModal());
     resetForm();
   };
+
+  const title =
+    mode === 'login' ? 'Welcome back' : mode === 'register' ? 'Create account' : 'Reset password';
 
   return (
     <Modal
@@ -92,11 +116,20 @@ export default function LoginModal({ open }: LoginModalProps) {
             >
               <LockOutlinedIcon sx={{ color: 'white' }} />
             </Box>
-            <Typography variant="h6">{isLoginMode ? 'Welcome back' : 'Create account'}</Typography>
+            <Typography variant="h6">{title}</Typography>
+            {mode === 'forgot' && (
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ mt: 0.5, textAlign: 'center' }}
+              >
+                Enter your email and we&apos;ll send a reset link
+              </Typography>
+            )}
           </Box>
 
           <form onSubmit={handleSubmit}>
-            {!isLoginMode && (
+            {mode === 'register' && (
               <TextField
                 label="Nickname"
                 fullWidth
@@ -118,17 +151,19 @@ export default function LoginModal({ open }: LoginModalProps) {
               onChange={(e) => setEmail(e.target.value)}
               required
             />
-            <TextField
-              label="Password"
-              type="password"
-              fullWidth
-              margin="normal"
-              size="small"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              slotProps={{ htmlInput: { minLength: 8 } }}
-            />
+            {mode !== 'forgot' && (
+              <TextField
+                label="Password"
+                type="password"
+                fullWidth
+                margin="normal"
+                size="small"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                slotProps={{ htmlInput: { minLength: 8 } }}
+              />
+            )}
 
             {error && (
               <FormHelperText error sx={{ mt: 1 }}>
@@ -141,39 +176,60 @@ export default function LoginModal({ open }: LoginModalProps) {
               fullWidth
               variant="contained"
               sx={{ mt: 2.5, height: 44, borderRadius: 2 }}
-              disabled={isLoading}
+              disabled={isLoading || forgotLoading}
             >
-              {isLoading ? (
+              {isLoading || forgotLoading ? (
                 <CircularProgress size={22} color="inherit" />
-              ) : isLoginMode ? (
+              ) : mode === 'login' ? (
                 'Sign In'
-              ) : (
+              ) : mode === 'register' ? (
                 'Sign Up'
+              ) : (
+                'Send Reset Link'
               )}
             </Button>
           </form>
+
+          {mode === 'login' && (
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{
+                mt: 1.5,
+                textAlign: 'center',
+                cursor: 'pointer',
+                '&:hover': { color: 'primary.main' },
+              }}
+              onClick={() => {
+                setMode('forgot');
+                dispatch(clearError());
+              }}
+            >
+              Forgot password?
+            </Typography>
+          )}
 
           <Typography
             variant="body2"
             color="text.secondary"
             sx={{
-              mt: 2.5,
+              mt: 1.5,
               textAlign: 'center',
               cursor: 'pointer',
               '&:hover': { color: 'primary.main' },
             }}
             onClick={() => {
-              setIsLoginMode(!isLoginMode);
+              setMode(mode === 'login' ? 'register' : 'login');
               dispatch(clearError());
             }}
           >
-            {isLoginMode ? (
+            {mode === 'register' ? (
               <>
-                Don&apos;t have an account? <b>Sign Up</b>
+                Already have an account? <b>Sign In</b>
               </>
             ) : (
               <>
-                Already have an account? <b>Sign In</b>
+                Don&apos;t have an account? <b>Sign Up</b>
               </>
             )}
           </Typography>

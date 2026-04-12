@@ -23,6 +23,12 @@ export class User {
 
   @Prop()
   activationLink?: string;
+
+  @Prop()
+  resetPasswordToken?: string;
+
+  @Prop()
+  resetPasswordExpires?: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

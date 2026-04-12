@@ -77,6 +77,23 @@ export class AuthService {
     await this.usersService.activate(activationLink);
   }
 
+  async forgotPassword(email: string) {
+    const { token } = await this.usersService.setResetToken(email);
+    if (token) {
+      const frontendUrl = this.configService.get<string>('FRONTEND_URL');
+      await this.mailService.sendResetPasswordMail(
+        email,
+        `${frontendUrl}/auth/reset-password?token=${token}`,
+      );
+    }
+    return { message: 'If this email is registered, you will receive a reset link' };
+  }
+
+  async resetPassword(token: string, password: string) {
+    await this.usersService.resetPassword(token, password);
+    return { message: 'Password has been reset successfully' };
+  }
+
   private generateTokens(payload: IUserDto) {
     const accessToken = this.jwtService.sign(payload, {
       secret: this.configService.get<string>('JWT_ACCESS_SECRET'),

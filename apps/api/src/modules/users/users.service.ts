@@ -8,6 +8,7 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
 import { User, UserDocument } from './schemas/user.schema';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto, ChangePasswordDto } from './dto/update-user.dto';
@@ -137,5 +138,36 @@ export class UsersService {
     }
 
     return user;
+  }
+
+  async setResetToken(email: string): Promise<{ token: string }> {
+    const user = await this.userModel.findOne({ email });
+    if (!user) {
+      // Don't reveal whether email exists
+      return { token: '' };
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    user.resetPasswordToken = token;
+    user.resetPasswordExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    await user.save();
+
+    return { token };
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    const user = await this.userModel.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: new Date() },
+    });
+
+    if (!user) {
+      throw new BadRequestException('Invalid or expired reset token');
+    }
+
+    user.password = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
   }
 }
