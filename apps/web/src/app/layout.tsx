@@ -4,6 +4,7 @@ import StoreProvider from '@/store/provider';
 import ThemeProvider from '@/theme/ThemeProvider';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import AuthInitializer from '@/components/auth/AuthInitializer';
 import AppSnackbar from '@/components/ui/Snackbar';
 
 export const metadata: Metadata = {
@@ -26,10 +27,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <StoreProvider>
           <AppRouterCacheProvider>
             <ThemeProvider>
-              <Header />
-              <main style={{ marginTop: 64, minHeight: 'calc(100vh - 164px)' }}>{children}</main>
-              <Footer />
-              <AppSnackbar />
+              <AuthInitializer>
+                <Header />
+                <main style={{ marginTop: 64, minHeight: 'calc(100vh - 164px)' }}>{children}</main>
+                <Footer />
+                <AppSnackbar />
+              </AuthInitializer>
             </ThemeProvider>
           </AppRouterCacheProvider>
         </StoreProvider>
