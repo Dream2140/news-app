@@ -9,6 +9,9 @@ import NewsCard from '@/components/news/NewsCard';
 import { apiClient } from '@/lib/api-client';
 import type { INews } from '@newsapp/shared';
 
+// ISR: cache page for 5 minutes, revalidate in background
+export const revalidate = 300;
+
 const PLACEHOLDER = 'https://placehold.co/1200x500/1a1a2e/e94560?text=Dream+News';
 
 interface ArticlePageProps {
