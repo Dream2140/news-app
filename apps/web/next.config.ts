@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       { protocol: 'https', hostname: 'virtus-img.cdnvideo.ru' },
       { protocol: 'https', hostname: '*.theguardian.com' },
+      { protocol: 'https', hostname: '*.currentsapi.services' },
       { protocol: 'http', hostname: 'localhost' },
     ],
   },

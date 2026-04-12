@@ -18,7 +18,10 @@ import { ExternalNewsModule } from './modules/external-news/external-news.module
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: join(__dirname, '..', '..', '..', '.env'),
+      envFilePath:
+        process.env.NODE_ENV === 'production'
+          ? undefined
+          : join(__dirname, '..', '..', '..', '.env'),
       validationSchema: Joi.object({
         PORT: Joi.number().default(5001),
         DB_URL: Joi.string().required(),

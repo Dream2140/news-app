@@ -33,7 +33,7 @@ async function bootstrap() {
   app.useGlobalInterceptors(new TransformInterceptor());
 
   const port = configService.get<number>('PORT', 5001);
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
   console.error(`Server is running on port ${port}`);
 }
 
