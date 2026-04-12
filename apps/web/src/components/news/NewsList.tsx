@@ -7,52 +7,66 @@ import { Container, Grid, Button, Typography, Box } from '@mui/material';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import NewsCard from './NewsCard';
 import CategoriesBar from './CategoriesBar';
-import { useAppDispatch, useAppSelector } from '@/hooks/useAppDispatch';
-import { fetchNews, changeCategory } from '@/store/slices/newsSlice';
+import { apiClient } from '@/lib/api-client';
+import type { INews } from '@newsapp/shared';
 
 const LIMIT = 12;
 
 export default function NewsList() {
-  const [page, setPage] = useState(1);
-  const dispatch = useAppDispatch();
   const searchParams = useSearchParams();
+  const [docs, setDocs] = useState<INews[]>([]);
+  const [page, setPage] = useState(1);
+  const [hasNextPage, setHasNextPage] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [category, setCategory] = useState('all');
 
-  const { docs, hasNextPage, isLoading, error, category } = useAppSelector((state) => state.news);
-
-  // Sync URL → Redux category (only on mount or URL change)
   useEffect(() => {
-    const urlCategory = searchParams.get('category') ?? 'all';
-    if (urlCategory !== category) {
-      dispatch(changeCategory(urlCategory));
+    const urlCat = searchParams.get('category') ?? 'all';
+    if (urlCat !== category) {
+      setCategory(urlCat);
+      setDocs([]);
       setPage(1);
     }
-  }, [searchParams, category, dispatch]);
+  }, [searchParams, category]);
 
-  // Fetch when page or category changes
+  const fetchNews = useCallback(async (p: number, cat: string, append: boolean) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await apiClient.get('/news/get-all-news', {
+        params: { page: p, limit: LIMIT, category: cat },
+      });
+      const data = res.data.data;
+      setDocs((prev) => (append ? [...prev, ...data.docs] : data.docs));
+      setHasNextPage(data.hasNextPage);
+    } catch {
+      setError('Failed to load news');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
-    dispatch(fetchNews({ limit: LIMIT, page, category }));
-  }, [dispatch, page, category]);
+    fetchNews(page, category, page > 1);
+  }, [page, category, fetchNews]);
 
-  const handleCategoryChange = useCallback(
-    (newCategory: string) => {
-      if (newCategory !== category) {
-        dispatch(changeCategory(newCategory));
-        setPage(1);
-      }
-    },
-    [category, dispatch],
-  );
+  const handleCategoryChange = (cat: string) => {
+    if (cat !== category) {
+      setCategory(cat);
+      setDocs([]);
+      setPage(1);
+    }
+  };
 
   const heroItem = docs[0];
   const restItems = docs.slice(1);
-
   const showSkeleton = isLoading && docs.length === 0;
   const showEmpty = !isLoading && docs.length === 0 && !error;
 
   return (
     <>
-      <CategoriesBar onCategoryChange={handleCategoryChange} />
-
+      <CategoriesBar currentCategory={category} onCategoryChange={handleCategoryChange} />
       <Container maxWidth="lg" sx={{ mt: 3 }}>
         {error && (
           <Box sx={{ color: 'error.main', mb: 3, display: 'flex', gap: 1, alignItems: 'center' }}>
@@ -61,13 +75,12 @@ export default function NewsList() {
               size="small"
               variant="outlined"
               color="error"
-              onClick={() => dispatch(fetchNews({ limit: LIMIT, page, category }))}
+              onClick={() => fetchNews(page, category, false)}
             >
               Retry
             </Button>
           </Box>
         )}
-
         {showSkeleton ? (
           <Grid container spacing={3}>
             <Grid size={{ xs: 12, md: 8 }}>
@@ -76,14 +89,14 @@ export default function NewsList() {
             <Grid size={{ xs: 12, md: 4 }}>
               <Grid container spacing={3}>
                 {[0, 1].map((i) => (
-                  <Grid key={`sk-side-${i}`} size={12}>
+                  <Grid key={i} size={12}>
                     <NewsCard loading />
                   </Grid>
                 ))}
               </Grid>
             </Grid>
             {[0, 1, 2, 3].map((i) => (
-              <Grid key={`sk-${i}`} size={{ xs: 12, sm: 6, md: 4 }}>
+              <Grid key={`s${i}`} size={{ xs: 12, sm: 6, md: 4 }}>
                 <NewsCard loading />
               </Grid>
             ))}
@@ -145,7 +158,6 @@ export default function NewsList() {
                   </Grid>
                 </>
               )}
-
               {restItems.slice(2).map((item) => (
                 <Grid key={item._id} size={{ xs: 12, sm: 6, md: 4 }}>
                   <Link href={`/news/${item._id}`} style={{ textDecoration: 'none' }}>

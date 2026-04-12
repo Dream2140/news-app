@@ -12,20 +12,20 @@ import {
   Typography,
 } from '@mui/material';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import { useAuth } from '@/contexts/AuthContext';
+import { useSnackbar } from '@/contexts/SnackbarContext';
 import { apiClient } from '@/lib/api-client';
-import { useAppDispatch, useAppSelector } from '@/hooks/useAppDispatch';
-import { loginUser, registerUser, clearError } from '@/store/slices/authSlice';
-import { closeModal, showSnackbar } from '@/store/slices/uiSlice';
 
 type ModalMode = 'login' | 'register' | 'forgot';
 
 interface LoginModalProps {
   open: boolean;
+  onClose: () => void;
 }
 
-export default function LoginModal({ open }: LoginModalProps) {
-  const dispatch = useAppDispatch();
-  const { isLoading, error } = useAppSelector((state) => state.auth);
+export default function LoginModal({ open, onClose }: LoginModalProps) {
+  const { login, register, isLoading, error, clearError } = useAuth();
+  const { showSnackbar } = useSnackbar();
 
   const [mode, setMode] = useState<ModalMode>('login');
   const [email, setEmail] = useState('');
@@ -40,31 +40,20 @@ export default function LoginModal({ open }: LoginModalProps) {
       setForgotLoading(true);
       try {
         await apiClient.post('/user/forgot-password', { email });
-        dispatch(
-          showSnackbar({ message: 'Reset link sent! Check your email.', severity: 'success' }),
-        );
+        showSnackbar('Reset link sent! Check your email.', 'success');
         handleClose();
       } catch {
-        dispatch(showSnackbar({ message: 'Failed to send reset email', severity: 'error' }));
+        showSnackbar('Failed to send reset email', 'error');
       } finally {
         setForgotLoading(false);
       }
       return;
     }
 
-    if (mode === 'login') {
-      const result = await dispatch(loginUser({ email, password }));
-      if (loginUser.fulfilled.match(result)) {
-        dispatch(closeModal());
-        resetForm();
-      }
-    } else {
-      const result = await dispatch(registerUser({ nickname, email, password }));
-      if (registerUser.fulfilled.match(result)) {
-        dispatch(closeModal());
-        resetForm();
-      }
-    }
+    const success =
+      mode === 'login' ? await login(email, password) : await register(nickname, email, password);
+
+    if (success) handleClose();
   };
 
   const resetForm = () => {
@@ -72,11 +61,11 @@ export default function LoginModal({ open }: LoginModalProps) {
     setPassword('');
     setNickname('');
     setMode('login');
-    dispatch(clearError());
+    clearError();
   };
 
   const handleClose = () => {
-    dispatch(closeModal());
+    onClose();
     resetForm();
   };
 
@@ -202,7 +191,7 @@ export default function LoginModal({ open }: LoginModalProps) {
               }}
               onClick={() => {
                 setMode('forgot');
-                dispatch(clearError());
+                clearError();
               }}
             >
               Forgot password?
@@ -220,7 +209,7 @@ export default function LoginModal({ open }: LoginModalProps) {
             }}
             onClick={() => {
               setMode(mode === 'login' ? 'register' : 'login');
-              dispatch(clearError());
+              clearError();
             }}
           >
             {mode === 'register' ? (

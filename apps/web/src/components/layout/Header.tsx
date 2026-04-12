@@ -27,28 +27,23 @@ import MenuIcon from '@mui/icons-material/Menu';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import NewspaperIcon from '@mui/icons-material/Newspaper';
-import { useAppDispatch, useAppSelector } from '@/hooks/useAppDispatch';
-import { logout } from '@/store/slices/authSlice';
-import { openModal } from '@/store/slices/uiSlice';
+import { useAuth } from '@/contexts/AuthContext';
 import { useThemeMode } from '@/theme/ThemeProvider';
 import LoginModal from '@/components/auth/LoginModal';
 import { UserRole } from '@newsapp/shared';
 
 export default function Header() {
-  const dispatch = useAppDispatch();
   const router = useRouter();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { mode, toggleTheme } = useThemeMode();
-
-  const user = useAppSelector((state) => state.auth.user);
-  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
-  const modalState = useAppSelector((state) => state.ui.modal);
+  const { user, isAuthenticated, logout } = useAuth();
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [loginOpen, setLoginOpen] = useState(false);
 
   const handleSearch = () => {
     if (searchQuery.trim()) {
@@ -56,11 +51,6 @@ export default function Header() {
       setSearchOpen(false);
       setSearchQuery('');
     }
-  };
-
-  const handleLogout = () => {
-    dispatch(logout());
-    setAnchorEl(null);
   };
 
   return (
@@ -197,13 +187,19 @@ export default function Header() {
                 >
                   Profile
                 </MenuItem>
-                <MenuItem onClick={handleLogout} sx={{ color: 'error.main' }}>
+                <MenuItem
+                  onClick={() => {
+                    logout();
+                    setAnchorEl(null);
+                  }}
+                  sx={{ color: 'error.main' }}
+                >
                   Logout
                 </MenuItem>
               </Menu>
             </>
           ) : (
-            <IconButton onClick={() => dispatch(openModal('login'))} color="inherit">
+            <IconButton onClick={() => setLoginOpen(true)} color="inherit">
               <AccountCircle />
             </IconButton>
           )}
@@ -236,7 +232,7 @@ export default function Header() {
         </Box>
       </Drawer>
 
-      <LoginModal open={modalState.isOpen && modalState.type === 'login'} />
+      <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
     </>
   );
 }

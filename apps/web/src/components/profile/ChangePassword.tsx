@@ -2,30 +2,31 @@
 
 import { useState } from 'react';
 import { Box, Button, TextField } from '@mui/material';
-import { useAppDispatch, useAppSelector } from '@/hooks/useAppDispatch';
-import { changePassword } from '@/store/slices/profileSlice';
-import { showSnackbar } from '@/store/slices/uiSlice';
+import { useAuth } from '@/contexts/AuthContext';
+import { useSnackbar } from '@/contexts/SnackbarContext';
+import { apiClient } from '@/lib/api-client';
 
 export default function ChangePassword() {
-  const dispatch = useAppDispatch();
-  const user = useAppSelector((state) => state.auth.user);
+  const { user } = useAuth();
+  const { showSnackbar } = useSnackbar();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-
-    const result = await dispatch(
-      changePassword({ userId: user.id, currentPassword, newPassword }),
-    );
-
-    if (changePassword.fulfilled.match(result)) {
-      dispatch(showSnackbar({ message: 'Password updated', severity: 'success' }));
+    setIsLoading(true);
+    try {
+      await apiClient.put(`/user/update-password/${user.id}`, { currentPassword, newPassword });
+      showSnackbar('Password updated', 'success');
       setCurrentPassword('');
       setNewPassword('');
-    } else {
-      dispatch(showSnackbar({ message: result.payload as string, severity: 'error' }));
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } } };
+      showSnackbar(e.response?.data?.message ?? 'Failed', 'error');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -48,10 +49,10 @@ export default function ChangePassword() {
         value={newPassword}
         onChange={(e) => setNewPassword(e.target.value)}
         required
-        slotProps={{ htmlInput: { minLength: 6 } }}
+        slotProps={{ htmlInput: { minLength: 8 } }}
       />
-      <Button type="submit" variant="contained">
-        Change Password
+      <Button type="submit" variant="contained" disabled={isLoading}>
+        {isLoading ? 'Saving...' : 'Change Password'}
       </Button>
     </Box>
   );

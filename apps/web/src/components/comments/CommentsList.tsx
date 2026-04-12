@@ -1,31 +1,36 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Box, CircularProgress, Typography } from '@mui/material';
 import CommentIcon from '@mui/icons-material/Comment';
 import CommentItem from './CommentItem';
 import CommentForm from './CommentForm';
-import { useAppDispatch, useAppSelector } from '@/hooks/useAppDispatch';
-import { fetchComments, deleteComment, clearComments } from '@/store/slices/commentsSlice';
+import { useAuth } from '@/contexts/AuthContext';
+import { apiClient } from '@/lib/api-client';
+import type { IComment } from '@newsapp/shared';
 
-interface CommentsListProps {
-  newsId: string;
-}
-
-export default function CommentsList({ newsId }: CommentsListProps) {
-  const dispatch = useAppDispatch();
-  const { comments, isLoading } = useAppSelector((state) => state.comments);
-  const user = useAppSelector((state) => state.auth.user);
+export default function CommentsList({ newsId }: { newsId: string }) {
+  const { user } = useAuth();
+  const [comments, setComments] = useState<IComment[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    dispatch(fetchComments(newsId));
-    return () => {
-      dispatch(clearComments());
-    };
-  }, [dispatch, newsId]);
+    apiClient
+      .get(`/comment/news-comments/${newsId}`)
+      .then((res) => setComments(res.data.data))
+      .catch(() => {})
+      .finally(() => setIsLoading(false));
+  }, [newsId]);
 
-  const handleDelete = (commentId: string) => {
-    dispatch(deleteComment(commentId));
+  const handleCreated = (comment: IComment) => setComments((prev) => [comment, ...prev]);
+
+  const handleDelete = async (id: string) => {
+    try {
+      await apiClient.delete(`/comment/${id}`);
+      setComments((prev) => prev.filter((c) => c._id !== id));
+    } catch {
+      /* ignore */
+    }
   };
 
   return (
@@ -33,9 +38,7 @@ export default function CommentsList({ newsId }: CommentsListProps) {
       <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
         <CommentIcon /> Comments ({comments.length})
       </Typography>
-
-      <CommentForm newsId={newsId} />
-
+      <CommentForm newsId={newsId} onCreated={handleCreated} />
       {isLoading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
           <CircularProgress size={32} />
@@ -48,11 +51,11 @@ export default function CommentsList({ newsId }: CommentsListProps) {
           </Typography>
         </Box>
       ) : (
-        comments.map((comment) => (
+        comments.map((c) => (
           <CommentItem
-            key={comment._id}
-            comment={comment}
-            canDelete={comment.user === user?.id}
+            key={c._id}
+            comment={c}
+            canDelete={c.user === user?.id}
             onDelete={handleDelete}
           />
         ))

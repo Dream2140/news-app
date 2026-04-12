@@ -2,24 +2,28 @@
 
 import { useState } from 'react';
 import { Box, Button, TextField } from '@mui/material';
-import { useAppDispatch, useAppSelector } from '@/hooks/useAppDispatch';
-import { updateUserData } from '@/store/slices/profileSlice';
-import { showSnackbar } from '@/store/slices/uiSlice';
+import { useAuth } from '@/contexts/AuthContext';
+import { useSnackbar } from '@/contexts/SnackbarContext';
+import { apiClient } from '@/lib/api-client';
 
 export default function EditProfile() {
-  const dispatch = useAppDispatch();
-  const user = useAppSelector((state) => state.auth.user);
+  const { user } = useAuth();
+  const { showSnackbar } = useSnackbar();
   const [nickname, setNickname] = useState(user?.nickname ?? '');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-
-    const result = await dispatch(updateUserData({ userId: user.id, data: { nickname } }));
-    if (updateUserData.fulfilled.match(result)) {
-      dispatch(showSnackbar({ message: 'Nickname updated', severity: 'success' }));
-    } else {
-      dispatch(showSnackbar({ message: result.payload as string, severity: 'error' }));
+    setIsLoading(true);
+    try {
+      await apiClient.put(`/user/update-user/${user.id}`, { nickname });
+      showSnackbar('Nickname updated', 'success');
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } } };
+      showSnackbar(e.response?.data?.message ?? 'Update failed', 'error');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -33,8 +37,8 @@ export default function EditProfile() {
         onChange={(e) => setNickname(e.target.value)}
         slotProps={{ htmlInput: { minLength: 2 } }}
       />
-      <Button type="submit" variant="contained">
-        Update
+      <Button type="submit" variant="contained" disabled={isLoading}>
+        {isLoading ? 'Saving...' : 'Update'}
       </Button>
     </Box>
   );

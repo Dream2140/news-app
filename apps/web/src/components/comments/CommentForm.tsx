@@ -2,32 +2,42 @@
 
 import { useState } from 'react';
 import { Box, Button, TextField } from '@mui/material';
-import { useAppDispatch, useAppSelector } from '@/hooks/useAppDispatch';
-import { createComment } from '@/store/slices/commentsSlice';
+import { useAuth } from '@/contexts/AuthContext';
+import { apiClient } from '@/lib/api-client';
+import type { IComment } from '@newsapp/shared';
 
 const MAX_COMMENT_LENGTH = 5000;
 
-interface CommentFormProps {
+export default function CommentForm({
+  newsId,
+  onCreated,
+}: {
   newsId: string;
-}
-
-export default function CommentForm({ newsId }: CommentFormProps) {
+  onCreated: (c: IComment) => void;
+}) {
   const [content, setContent] = useState('');
-  const dispatch = useAppDispatch();
-  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
+  const [isLoading, setIsLoading] = useState(false);
+  const { isAuthenticated } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!content.trim() || content.length > MAX_COMMENT_LENGTH) return;
-
-    dispatch(createComment({ content: content.trim(), newsId }));
-    setContent('');
+    if (!content.trim()) return;
+    setIsLoading(true);
+    try {
+      const res = await apiClient.post('/comment', { content: content.trim(), newsId });
+      onCreated(res.data.data);
+      setContent('');
+    } catch {
+      /* ignore */
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (!isAuthenticated) return null;
 
   return (
-    <Box component="form" onSubmit={handleSubmit} sx={{ mb: 3 }} aria-label="Post a comment">
+    <Box component="form" onSubmit={handleSubmit} sx={{ mb: 3 }}>
       <TextField
         label="Write a comment..."
         multiline
@@ -37,8 +47,13 @@ export default function CommentForm({ newsId }: CommentFormProps) {
         onChange={(e) => setContent(e.target.value)}
         slotProps={{ htmlInput: { maxLength: MAX_COMMENT_LENGTH } }}
       />
-      <Button type="submit" variant="contained" sx={{ mt: 1 }} disabled={!content.trim()}>
-        Post Comment
+      <Button
+        type="submit"
+        variant="contained"
+        sx={{ mt: 1 }}
+        disabled={!content.trim() || isLoading}
+      >
+        {isLoading ? 'Posting...' : 'Post Comment'}
       </Button>
     </Box>
   );

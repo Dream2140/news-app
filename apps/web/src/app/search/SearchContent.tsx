@@ -1,25 +1,29 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Container, Typography, Grid, Box, CircularProgress } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import NewsCard from '@/components/news/NewsCard';
-import { useAppDispatch, useAppSelector } from '@/hooks/useAppDispatch';
-import { searchNews } from '@/store/slices/newsSlice';
+import { apiClient } from '@/lib/api-client';
+import type { INews } from '@newsapp/shared';
 
 export default function SearchContent() {
   const searchParams = useSearchParams();
   const query = searchParams.get('q') ?? '';
-  const dispatch = useAppDispatch();
-  const { docs, isLoading, searchQuery } = useAppSelector((state) => state.news);
+  const [docs, setDocs] = useState<INews[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (query && query !== searchQuery) {
-      dispatch(searchNews(query));
-    }
-  }, [query, searchQuery, dispatch]);
+    if (!query) return;
+    setIsLoading(true);
+    apiClient
+      .get('/news/get-news-by-title', { params: { title: query } })
+      .then((res) => setDocs(res.data.data))
+      .catch(() => {})
+      .finally(() => setIsLoading(false));
+  }, [query]);
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
@@ -29,14 +33,13 @@ export default function SearchContent() {
           Results for &ldquo;{query}&rdquo;
         </Typography>
       </Box>
-
       {isLoading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
           <CircularProgress />
         </Box>
       ) : docs.length === 0 ? (
         <Typography variant="h6" color="text.secondary" sx={{ textAlign: 'center', py: 8 }}>
-          No articles found for &ldquo;{query}&rdquo;
+          No articles found
         </Typography>
       ) : (
         <>

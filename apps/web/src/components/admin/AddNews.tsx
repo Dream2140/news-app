@@ -29,13 +29,13 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import CloseIcon from '@mui/icons-material/Close';
 import { NEWS_CATEGORIES, type INews } from '@newsapp/shared';
 import { apiClient } from '@/lib/api-client';
-import { useAppDispatch } from '@/hooks/useAppDispatch';
-import { showSnackbar } from '@/store/slices/uiSlice';
+
+import { useSnackbar } from '@/contexts/SnackbarContext';
 
 const categories = NEWS_CATEGORIES.filter((c) => c.type !== 'all');
 
 export default function AddNews() {
-  const dispatch = useAppDispatch();
+  const { showSnackbar } = useSnackbar();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [formOpen, setFormOpen] = useState(false);
@@ -114,7 +114,7 @@ export default function AddNews() {
           slug,
           category,
         });
-        dispatch(showSnackbar({ message: 'News updated!', severity: 'success' }));
+        showSnackbar('News updated!', 'success');
       } else {
         const formData = new FormData();
         formData.append('title', title);
@@ -127,7 +127,7 @@ export default function AddNews() {
         await apiClient.post('/news/post-news', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
-        dispatch(showSnackbar({ message: 'News created!', severity: 'success' }));
+        showSnackbar('News created!', 'success');
       }
 
       resetForm();
@@ -144,10 +144,10 @@ export default function AddNews() {
   const handleDelete = async (id: string) => {
     try {
       await apiClient.delete(`/news/delete-news/${id}`);
-      dispatch(showSnackbar({ message: 'News deleted', severity: 'success' }));
+      showSnackbar('News deleted', 'success');
       setNewsList((prev) => prev.filter((n) => n._id !== id));
     } catch {
-      dispatch(showSnackbar({ message: 'Failed to delete', severity: 'error' }));
+      showSnackbar('Failed to delete', 'error');
     }
     setDeleteConfirm(null);
   };

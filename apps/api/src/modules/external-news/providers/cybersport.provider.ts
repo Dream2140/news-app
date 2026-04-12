@@ -4,7 +4,7 @@ import { News } from '../../news/schemas/news.schema';
 import { CloudinaryService } from '../../upload/cloudinary.service';
 
 const CYBERSPORT_API = 'https://www.cybersport.ru/api/materials';
-const CYBERSPORT_IMAGE_CDN = 'https://virtus-img.cdnvideo.ru/images/material-card/plain/';
+const CYBERSPORT_IMAGE_CDN = 'https://images.cybersport.ru/images/material-card/plain/';
 const PLACEHOLDER_IMAGE = 'https://placehold.co/800x400/1a1a2e/e94560?text=Cybersport';
 
 function cleanHtml(str: string): string {

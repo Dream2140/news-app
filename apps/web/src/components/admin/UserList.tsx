@@ -20,38 +20,49 @@ import {
   Typography,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { useAppDispatch, useAppSelector } from '@/hooks/useAppDispatch';
-import { fetchUsers, deleteUser } from '@/store/slices/adminSlice';
+import { apiClient } from '@/lib/api-client';
+import type { IUserDto } from '@newsapp/shared';
 
 export default function UserList() {
-  const dispatch = useAppDispatch();
-  const { users, isLoading } = useAppSelector((state) => state.admin);
+  const [users, setUsers] = useState<IUserDto[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
   useEffect(() => {
-    dispatch(fetchUsers());
-  }, [dispatch]);
+    apiClient
+      .get('/user/all-users')
+      .then((res) => setUsers(res.data.data))
+      .catch(() => {})
+      .finally(() => setIsLoading(false));
+  }, []);
 
-  if (isLoading) {
+  const handleDelete = async (id: string) => {
+    try {
+      await apiClient.delete(`/user/delete-user/${id}`);
+      setUsers((prev) => prev.filter((u) => u.id !== id));
+    } catch {
+      /* ignore */
+    }
+    setDeleteConfirm(null);
+  };
+
+  if (isLoading)
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
         <CircularProgress />
       </Box>
     );
-  }
-
-  if (users.length === 0) {
+  if (users.length === 0)
     return (
       <Typography color="text.secondary" sx={{ py: 4, textAlign: 'center' }}>
         No users found
       </Typography>
     );
-  }
 
   return (
     <>
       <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
-        <Table sx={{ minWidth: 500 }}>
+        <Table sx={{ minWidth: 500 }} size="small">
           <TableHead>
             <TableRow>
               <TableCell>Nickname</TableCell>
@@ -62,29 +73,29 @@ export default function UserList() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {users.map((user) => (
-              <TableRow key={user.id} hover>
-                <TableCell sx={{ fontWeight: 600 }}>{user.nickname}</TableCell>
-                <TableCell>{user.email}</TableCell>
+            {users.map((u) => (
+              <TableRow key={u.id} hover>
+                <TableCell sx={{ fontWeight: 600 }}>{u.nickname}</TableCell>
+                <TableCell>{u.email}</TableCell>
                 <TableCell>
                   <Chip
-                    label={user.role}
+                    label={u.role}
                     size="small"
-                    color={user.role === 'ADMIN' ? 'primary' : 'default'}
+                    color={u.role === 'ADMIN' ? 'primary' : 'default'}
                   />
                 </TableCell>
                 <TableCell>
                   <Chip
-                    label={user.isActivated ? 'Active' : 'Pending'}
+                    label={u.isActivated ? 'Active' : 'Pending'}
                     size="small"
-                    color={user.isActivated ? 'success' : 'warning'}
+                    color={u.isActivated ? 'success' : 'warning'}
                     variant="outlined"
                   />
                 </TableCell>
                 <TableCell align="right">
                   <IconButton
-                    onClick={() => setDeleteConfirm(user.id)}
                     size="small"
+                    onClick={() => setDeleteConfirm(u.id)}
                     sx={{ '&:hover': { color: 'error.main' } }}
                   >
                     <DeleteIcon fontSize="small" />
@@ -95,18 +106,11 @@ export default function UserList() {
           </TableBody>
         </Table>
       </TableContainer>
-
       <Dialog open={Boolean(deleteConfirm)} onClose={() => setDeleteConfirm(null)}>
         <DialogTitle>Delete this user?</DialogTitle>
         <DialogActions>
           <Button onClick={() => setDeleteConfirm(null)}>Cancel</Button>
-          <Button
-            color="error"
-            onClick={() => {
-              if (deleteConfirm) dispatch(deleteUser(deleteConfirm));
-              setDeleteConfirm(null);
-            }}
-          >
+          <Button color="error" onClick={() => deleteConfirm && handleDelete(deleteConfirm)}>
             Delete
           </Button>
         </DialogActions>

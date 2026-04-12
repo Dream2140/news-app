@@ -1,11 +1,10 @@
 import type { Metadata } from 'next';
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
-import StoreProvider from '@/store/provider';
 import ThemeProvider from '@/theme/ThemeProvider';
+import AuthProvider from '@/contexts/AuthContext';
+import SnackbarProvider from '@/contexts/SnackbarContext';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
-import AuthInitializer from '@/components/auth/AuthInitializer';
-import AppSnackbar from '@/components/ui/Snackbar';
 
 export const metadata: Metadata = {
   title: 'Dream News — Tech & Esports',
@@ -24,18 +23,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
-        <StoreProvider>
-          <AppRouterCacheProvider>
-            <ThemeProvider>
-              <AuthInitializer>
+        <AppRouterCacheProvider>
+          <ThemeProvider>
+            <AuthProvider>
+              <SnackbarProvider>
                 <Header />
                 <main style={{ marginTop: 64, minHeight: 'calc(100vh - 164px)' }}>{children}</main>
                 <Footer />
-                <AppSnackbar />
-              </AuthInitializer>
-            </ThemeProvider>
-          </AppRouterCacheProvider>
-        </StoreProvider>
+              </SnackbarProvider>
+            </AuthProvider>
+          </ThemeProvider>
+        </AppRouterCacheProvider>
       </body>
     </html>
   );

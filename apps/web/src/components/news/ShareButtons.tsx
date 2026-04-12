@@ -5,24 +5,23 @@ import LinkIcon from '@mui/icons-material/Link';
 import TelegramIcon from '@mui/icons-material/Telegram';
 import XIcon from '@mui/icons-material/X';
 import FacebookIcon from '@mui/icons-material/Facebook';
-import { useAppDispatch } from '@/hooks/useAppDispatch';
-import { showSnackbar } from '@/store/slices/uiSlice';
+import { useSnackbar } from '@/contexts/SnackbarContext';
 
 interface ShareButtonsProps {
   title: string;
 }
 
 export default function ShareButtons({ title }: ShareButtonsProps) {
-  const dispatch = useAppDispatch();
+  const { showSnackbar } = useSnackbar();
 
   const getUrl = () => (typeof window !== 'undefined' ? window.location.href : '');
 
   const handleCopyLink = async () => {
     try {
       await navigator.clipboard.writeText(getUrl());
-      dispatch(showSnackbar({ message: 'Link copied!', severity: 'success' }));
+      showSnackbar('Link copied!', 'success');
     } catch {
-      dispatch(showSnackbar({ message: 'Failed to copy', severity: 'error' }));
+      showSnackbar('Failed to copy', 'error');
     }
   };
 
