@@ -1,0 +1,14 @@
+name: Keep Render Alive
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    steps:
+      - name: Ping API
+        run: curl -sf --max-time 30 "${{ secrets.API_URL }}/api/news/get-all-news?limit=1" > /dev/null
