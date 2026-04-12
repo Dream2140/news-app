@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { Box, CircularProgress, Typography } from '@mui/material';
+import CommentIcon from '@mui/icons-material/Comment';
 import CommentItem from './CommentItem';
 import CommentForm from './CommentForm';
 import { useAppDispatch, useAppSelector } from '@/hooks/useAppDispatch';
@@ -29,14 +30,23 @@ export default function CommentsList({ newsId }: CommentsListProps) {
 
   return (
     <Box sx={{ mt: 4 }}>
-      <Typography variant="h6" gutterBottom>
-        Comments ({comments.length})
+      <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+        <CommentIcon /> Comments ({comments.length})
       </Typography>
 
       <CommentForm newsId={newsId} />
 
       {isLoading ? (
-        <CircularProgress />
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+          <CircularProgress size={32} />
+        </Box>
+      ) : comments.length === 0 ? (
+        <Box sx={{ textAlign: 'center', py: 6, bgcolor: 'action.hover', borderRadius: 2 }}>
+          <CommentIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 1 }} />
+          <Typography color="text.secondary">
+            No comments yet. Be the first to share your thoughts!
+          </Typography>
+        </Box>
       ) : (
         comments.map((comment) => (
           <CommentItem
