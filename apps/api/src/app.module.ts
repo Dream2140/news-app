@@ -18,6 +18,7 @@ import { ExternalNewsModule } from './modules/external-news/external-news.module
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: join(__dirname, '..', '..', '..', '.env'),
       validationSchema: Joi.object({
         PORT: Joi.number().default(5001),
         DB_URL: Joi.string().required(),
@@ -30,7 +31,7 @@ import { ExternalNewsModule } from './modules/external-news/external-news.module
         API_URL: Joi.string().required(),
         FRONTEND_URL: Joi.string().default('http://localhost:3000'),
         CORS_ORIGINS: Joi.string().default('http://localhost:3000'),
-        CURRENTS_API_KEY: Joi.string().optional(),
+        CURRENTS_API_KEY: Joi.string().optional().allow(''),
       }),
     }),
     MongooseModule.forRootAsync({
