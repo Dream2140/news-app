@@ -35,6 +35,9 @@ import { ExternalNewsModule } from './modules/external-news/external-news.module
         FRONTEND_URL: Joi.string().default('http://localhost:3000'),
         CORS_ORIGINS: Joi.string().default('http://localhost:3000'),
         CURRENTS_API_KEY: Joi.string().optional().allow(''),
+        CLOUDINARY_CLOUD_NAME: Joi.string().optional().allow(''),
+        CLOUDINARY_API_KEY: Joi.string().optional().allow(''),
+        CLOUDINARY_API_SECRET: Joi.string().optional().allow(''),
       }),
     }),
     MongooseModule.forRootAsync({

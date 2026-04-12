@@ -13,11 +13,11 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ConfigService } from '@nestjs/config';
-import { diskStorage } from 'multer';
+import { memoryStorage } from 'multer';
 import { NewsService } from './news.service';
 import { CreateNewsDto } from './dto/create-news.dto';
 import { UpdateNewsDto } from './dto/update-news.dto';
+import { CloudinaryService } from '../upload/cloudinary.service';
 import { JwtAuthGuard } from '../auth/strategies/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -29,7 +29,7 @@ const IMAGE_WHITELIST = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
 export class NewsController {
   constructor(
     private readonly newsService: NewsService,
-    private readonly configService: ConfigService,
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
 
   @Get('get-all-news')
@@ -66,12 +66,7 @@ export class NewsController {
   @Roles(UserRole.ADMIN)
   @UseInterceptors(
     FileInterceptor('image', {
-      storage: diskStorage({
-        destination: 'uploads/',
-        filename: (_req, file, cb) => {
-          cb(null, `${file.fieldname}_${Date.now()}.jpg`);
-        },
-      }),
+      storage: memoryStorage(),
       fileFilter: (_req, file, cb) => {
         if (!IMAGE_WHITELIST.includes(file.mimetype)) {
           cb(new BadRequestException('Invalid file type'), false);
@@ -83,8 +78,10 @@ export class NewsController {
     }),
   )
   async createNews(@Body() dto: CreateNewsDto, @UploadedFile() file: Express.Multer.File) {
-    const apiUrl = this.configService.get<string>('API_URL');
-    const imagePath = file ? `${apiUrl}/uploads/${file.filename}` : undefined;
+    let imagePath: string | undefined;
+    if (file) {
+      imagePath = await this.cloudinaryService.uploadImage(file);
+    }
     return this.newsService.create(dto, imagePath);
   }
 

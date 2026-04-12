@@ -3,9 +3,10 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { News, NewsSchema } from './schemas/news.schema';
 import { NewsService } from './news.service';
 import { NewsController } from './news.controller';
+import { UploadModule } from '../upload/upload.module';
 
 @Module({
-  imports: [MongooseModule.forFeature([{ name: News.name, schema: NewsSchema }])],
+  imports: [MongooseModule.forFeature([{ name: News.name, schema: NewsSchema }]), UploadModule],
   controllers: [NewsController],
   providers: [NewsService],
   exports: [NewsService],
