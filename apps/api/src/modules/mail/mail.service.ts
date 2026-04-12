@@ -1,7 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
 import type { Transporter } from 'nodemailer';
+
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
 
 @Injectable()
 export class MailService {
@@ -19,6 +27,12 @@ export class MailService {
   }
 
   async sendActivationMail(to: string, link: string): Promise<void> {
+    if (/[\r\n]/.test(to) || /[\r\n]/.test(link)) {
+      throw new BadRequestException('Invalid email parameters');
+    }
+
+    const safeLink = escapeHtml(link);
+
     await this.transporter.sendMail({
       from: this.configService.get<string>('SMTP_USER'),
       to,
@@ -26,7 +40,7 @@ export class MailService {
       html: `
         <div>
           <h1>To activate your account, follow the link</h1>
-          <a href="${link}">${link}</a>
+          <a href="${safeLink}">${safeLink}</a>
         </div>
       `,
     });

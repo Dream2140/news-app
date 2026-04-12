@@ -88,14 +88,12 @@ export class NewsService {
   }
 
   async bulkCreate(newsList: Partial<News>[]): Promise<NewsDocument[]> {
-    const uniqueNews: Partial<News>[] = [];
+    const titles = newsList.map((n) => n.title).filter(Boolean);
+    const existingTitles = new Set(
+      (await this.newsModel.distinct('title', { title: { $in: titles } })) as string[],
+    );
 
-    for (const item of newsList) {
-      const exists = await this.newsModel.findOne({ title: item.title });
-      if (!exists) {
-        uniqueNews.push(item);
-      }
-    }
+    const uniqueNews = newsList.filter((item) => item.title && !existingTitles.has(item.title));
 
     if (uniqueNews.length === 0) {
       return [];

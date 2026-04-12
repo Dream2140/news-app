@@ -5,12 +5,14 @@ import type { IComment } from '@newsapp/shared';
 interface ProfileState {
   comments: IComment[];
   isLoading: boolean;
+  updateLoading: boolean;
   error: string | null;
 }
 
 const initialState: ProfileState = {
   comments: [],
   isLoading: false,
+  updateLoading: false,
   error: null,
 };
 
@@ -66,6 +68,7 @@ const profileSlice = createSlice({
     builder
       .addCase(fetchUserComments.pending, (state) => {
         state.isLoading = true;
+        state.error = null;
       })
       .addCase(fetchUserComments.fulfilled, (state, action) => {
         state.isLoading = false;
@@ -74,6 +77,28 @@ const profileSlice = createSlice({
       .addCase(fetchUserComments.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.error.message ?? 'Failed to fetch comments';
+      })
+      .addCase(updateUserData.pending, (state) => {
+        state.updateLoading = true;
+        state.error = null;
+      })
+      .addCase(updateUserData.fulfilled, (state) => {
+        state.updateLoading = false;
+      })
+      .addCase(updateUserData.rejected, (state, action) => {
+        state.updateLoading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(changePassword.pending, (state) => {
+        state.updateLoading = true;
+        state.error = null;
+      })
+      .addCase(changePassword.fulfilled, (state) => {
+        state.updateLoading = false;
+      })
+      .addCase(changePassword.rejected, (state, action) => {
+        state.updateLoading = false;
+        state.error = action.payload as string;
       });
   },
 });

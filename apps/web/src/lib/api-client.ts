@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosRequestConfig } from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5001';
 
@@ -18,26 +18,41 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
+let refreshPromise: Promise<string> | null = null;
+
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const originalRequest = error.config;
+    const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
+      if (!refreshPromise) {
+        refreshPromise = axios
+          .get(`${API_URL}/api/user/refresh`, { withCredentials: true })
+          .then((res) => {
+            const token = res.data.data.accessToken as string;
+            localStorage.setItem('accessToken', token);
+            return token;
+          })
+          .catch((err) => {
+            localStorage.removeItem('accessToken');
+            throw err;
+          })
+          .finally(() => {
+            refreshPromise = null;
+          });
+      }
+
       try {
-        const response = await axios.get(`${API_URL}/api/user/refresh`, {
-          withCredentials: true,
-        });
-
-        const { accessToken } = response.data.data;
-        localStorage.setItem('accessToken', accessToken);
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-
+        const newToken = await refreshPromise;
+        originalRequest.headers = {
+          ...originalRequest.headers,
+          Authorization: `Bearer ${newToken}`,
+        };
         return apiClient(originalRequest);
       } catch {
-        localStorage.removeItem('accessToken');
         return Promise.reject(error);
       }
     }

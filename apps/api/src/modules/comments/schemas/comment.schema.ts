@@ -22,3 +22,5 @@ export class Comment {
 }
 
 export const CommentSchema = SchemaFactory.createForClass(Comment);
+CommentSchema.index({ news: 1, publishedAt: -1 });
+CommentSchema.index({ user: 1, publishedAt: -1 });

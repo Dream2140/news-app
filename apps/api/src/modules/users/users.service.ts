@@ -1,16 +1,26 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+  Inject,
+  forwardRef,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { User, UserDocument } from './schemas/user.schema';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto, ChangePasswordDto } from './dto/update-user.dto';
+import { CommentsService } from '../comments/comments.service';
 
 const BCRYPT_ROUNDS = 12;
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
+  constructor(
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @Inject(forwardRef(() => CommentsService)) private commentsService: CommentsService,
+  ) {}
 
   async create(dto: CreateUserDto, activationLink: string): Promise<UserDocument> {
     const existingUser = await this.userModel.findOne({ email: dto.email });
@@ -96,6 +106,7 @@ export class UsersService {
     if (!result) {
       throw new NotFoundException(`User with id ${id} not found`);
     }
+    await this.commentsService.deleteByUserId(id);
     return { message: `User ${id} deleted successfully` };
   }
 
@@ -110,6 +121,7 @@ export class UsersService {
       throw new BadRequestException('Invalid activation link');
     }
     user.isActivated = true;
+    user.activationLink = undefined;
     await user.save();
   }
 

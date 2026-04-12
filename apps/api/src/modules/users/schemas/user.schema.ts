@@ -26,3 +26,4 @@ export class User {
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
+UserSchema.index({ activationLink: 1 }, { sparse: true });

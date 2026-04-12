@@ -14,6 +14,7 @@ const mockNewsModel = {
   findOne: vi.fn(),
   deleteMany: vi.fn(),
   paginate: vi.fn(),
+  distinct: vi.fn(),
 };
 
 describe('NewsService', () => {
@@ -111,9 +112,7 @@ describe('NewsService', () => {
 
   describe('bulkCreate', () => {
     it('should skip existing news', async () => {
-      mockNewsModel.findOne
-        .mockResolvedValueOnce({ title: 'Existing' })
-        .mockResolvedValueOnce(null);
+      mockNewsModel.distinct.mockResolvedValue(['Existing']);
       mockNewsModel.create.mockResolvedValue([{ title: 'New' }]);
 
       const result = await service.bulkCreate([
@@ -128,7 +127,7 @@ describe('NewsService', () => {
     });
 
     it('should return empty array if all exist', async () => {
-      mockNewsModel.findOne.mockResolvedValue({ title: 'Existing' });
+      mockNewsModel.distinct.mockResolvedValue(['Existing']);
 
       const result = await service.bulkCreate([{ title: 'Existing' }]);
       expect(result).toEqual([]);

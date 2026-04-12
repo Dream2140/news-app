@@ -4,6 +4,7 @@ import { getModelToken } from '@nestjs/mongoose';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { User } from './schemas/user.schema';
+import { CommentsService } from '../comments/comments.service';
 
 const mockUserModel = {
   findOne: vi.fn(),
@@ -16,6 +17,10 @@ const mockUserModel = {
   deleteMany: vi.fn(),
 };
 
+const mockCommentsService = {
+  deleteByUserId: vi.fn().mockResolvedValue(0),
+};
+
 describe('UsersService', () => {
   let service: UsersService;
 
@@ -23,7 +28,11 @@ describe('UsersService', () => {
     vi.clearAllMocks();
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [UsersService, { provide: getModelToken(User.name), useValue: mockUserModel }],
+      providers: [
+        UsersService,
+        { provide: getModelToken(User.name), useValue: mockUserModel },
+        { provide: CommentsService, useValue: mockCommentsService },
+      ],
     }).compile();
 
     service = module.get<UsersService>(UsersService);

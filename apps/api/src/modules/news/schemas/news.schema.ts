@@ -28,3 +28,6 @@ export class News {
 
 export const NewsSchema = SchemaFactory.createForClass(News);
 NewsSchema.plugin(mongoosePaginate);
+NewsSchema.index({ category: 1 });
+NewsSchema.index({ title: 'text' });
+NewsSchema.index({ publishedAt: -1 });

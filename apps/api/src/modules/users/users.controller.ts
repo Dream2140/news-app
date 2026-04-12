@@ -11,6 +11,7 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get('user-info/:id')
+  @UseGuards(JwtAuthGuard)
   async getUserById(@Param('id') id: string) {
     return this.usersService.findById(id);
   }

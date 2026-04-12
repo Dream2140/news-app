@@ -39,21 +39,16 @@ export class CybersportProvider {
       return [];
     }
 
-    const newsWithText = await Promise.all(
-      items.map(async (item) => {
-        const text = await this.fetchArticleText(item.id);
-        return {
-          title: item.attributes.title,
-          publishedAt: item.attributes.publishedAt,
-          slug: item.attributes.slug,
-          image: CYBERSPORT_IMAGE_URL + item.attributes.image,
-          text,
-          category: ['cybersport'],
-        };
-      }),
-    );
+    const results = await Promise.allSettled(items.map((item) => this.fetchArticleText(item.id)));
 
-    return newsWithText;
+    return items.map((item, idx) => ({
+      title: item.attributes.title,
+      publishedAt: item.attributes.publishedAt,
+      slug: item.attributes.slug,
+      image: CYBERSPORT_IMAGE_URL + item.attributes.image,
+      text: results[idx]?.status === 'fulfilled' ? results[idx].value : '',
+      category: ['cybersport'],
+    }));
   }
 
   private async fetchArticleText(newsId: string): Promise<string> {
