@@ -87,6 +87,10 @@ export class NewsService {
     return { message: `${result.deletedCount} news items deleted` };
   }
 
+  async count(): Promise<number> {
+    return this.newsModel.countDocuments();
+  }
+
   async bulkCreate(newsList: Partial<News>[]): Promise<NewsDocument[]> {
     const titles = newsList.map((n) => n.title).filter(Boolean);
     const existingTitles = new Set(

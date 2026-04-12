@@ -1,11 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { CybersportProvider } from './providers/cybersport.provider';
 import { CurrentsProvider } from './providers/currents.provider';
 import { NewsService } from '../news/news.service';
 
 @Injectable()
-export class ExternalNewsService {
+export class ExternalNewsService implements OnModuleInit {
   private readonly logger = new Logger(ExternalNewsService.name);
 
   constructor(
@@ -13,6 +13,14 @@ export class ExternalNewsService {
     private readonly currentsProvider: CurrentsProvider,
     private readonly newsService: NewsService,
   ) {}
+
+  async onModuleInit() {
+    const count = await this.newsService.count();
+    if (count === 0) {
+      this.logger.log('Database is empty — running initial news fetch...');
+      await this.handleScheduledFetch();
+    }
+  }
 
   @Cron(CronExpression.EVERY_10_MINUTES)
   async handleScheduledFetch() {
