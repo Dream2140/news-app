@@ -1,5 +1,7 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import axios from 'axios';
 import { CybersportProvider } from './providers/cybersport.provider';
 import { CurrentsProvider } from './providers/currents.provider';
 import { NewsService } from '../news/news.service';
@@ -12,6 +14,7 @@ export class ExternalNewsService implements OnModuleInit {
     private readonly cybersportProvider: CybersportProvider,
     private readonly currentsProvider: CurrentsProvider,
     private readonly newsService: NewsService,
+    private readonly configService: ConfigService,
   ) {}
 
   async onModuleInit() {
@@ -39,9 +42,14 @@ export class ExternalNewsService implements OnModuleInit {
       this.logger.error(`Currents fetch failed: ${currentsResult.reason}`);
     }
 
+    const totalNew = cybersportCount + currentsCount;
     this.logger.log(
       `Scheduled fetch complete: ${cybersportCount} from Cybersport, ${currentsCount} from Currents`,
     );
+
+    if (totalNew > 0) {
+      await this.triggerRevalidation();
+    }
   }
 
   async fetchFromCybersport() {
@@ -52,5 +60,25 @@ export class ExternalNewsService implements OnModuleInit {
   async fetchFromCurrents() {
     const newsList = await this.currentsProvider.fetchNews();
     return this.newsService.bulkCreate(newsList);
+  }
+
+  private async triggerRevalidation() {
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL');
+    const secret = this.configService.get<string>('REVALIDATE_SECRET');
+
+    if (!frontendUrl || !secret) {
+      this.logger.warn('FRONTEND_URL or REVALIDATE_SECRET not set, skipping revalidation');
+      return;
+    }
+
+    try {
+      await axios.post(`${frontendUrl}/api/revalidate`, null, {
+        headers: { 'x-revalidate-secret': secret },
+        timeout: 10000,
+      });
+      this.logger.log('Frontend revalidation triggered');
+    } catch (error) {
+      this.logger.warn(`Failed to trigger revalidation: ${error}`);
+    }
   }
 }
