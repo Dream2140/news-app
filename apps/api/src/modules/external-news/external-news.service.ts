@@ -15,11 +15,8 @@ export class ExternalNewsService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    const count = await this.newsService.count();
-    if (count === 0) {
-      this.logger.log('Database is empty — running initial news fetch...');
-      await this.handleScheduledFetch();
-    }
+    this.logger.log('Running initial news fetch on startup...');
+    await this.handleScheduledFetch();
   }
 
   @Cron(CronExpression.EVERY_30_MINUTES)
