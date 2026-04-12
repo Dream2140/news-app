@@ -1,8 +1,8 @@
 import { Suspense } from 'react';
 import { CircularProgress, Box } from '@mui/material';
-import NewsList from '@/components/news/NewsList';
+import SearchContent from './SearchContent';
 
-export default function HomePage() {
+export default function SearchPage() {
   return (
     <Suspense
       fallback={
@@ -11,7 +11,7 @@ export default function HomePage() {
         </Box>
       }
     >
-      <NewsList />
+      <SearchContent />
     </Suspense>
   );
 }

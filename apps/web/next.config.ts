@@ -1,18 +1,14 @@
-import { resolve } from 'path';
 import type { NextConfig } from 'next';
+import { join } from 'path';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   turbopack: {
-    root: resolve(__dirname, '../..'),
+    root: join(__dirname, '../..'),
   },
   images: {
-    remotePatterns: [
-      { protocol: 'https', hostname: 'virtus-img.cdnvideo.ru' },
-      { protocol: 'https', hostname: '*.theguardian.com' },
-      { protocol: 'https', hostname: '*.currentsapi.services' },
-      { protocol: 'http', hostname: 'localhost' },
-    ],
+    unoptimized: true,
+    remotePatterns: [{ protocol: 'https', hostname: '**' }],
   },
 };
 
