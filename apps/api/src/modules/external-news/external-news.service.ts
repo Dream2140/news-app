@@ -22,7 +22,7 @@ export class ExternalNewsService implements OnModuleInit {
     }
   }
 
-  @Cron(CronExpression.EVERY_10_MINUTES)
+  @Cron(CronExpression.EVERY_30_MINUTES)
   async handleScheduledFetch() {
     this.logger.log('Running scheduled news fetch...');
 

@@ -56,6 +56,11 @@ export class NewsController {
     return this.newsService.findByCategory(category, +page);
   }
 
+  @Get('related/:id')
+  async getRelated(@Param('id') id: string) {
+    return this.newsService.findRelated(id);
+  }
+
   @Post('post-news')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)

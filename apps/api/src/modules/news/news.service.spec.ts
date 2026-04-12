@@ -10,11 +10,20 @@ const mockNewsModel = {
   findById: vi.fn(),
   findByIdAndUpdate: vi.fn(),
   findByIdAndDelete: vi.fn(),
-  find: vi.fn(),
+  find: vi.fn().mockReturnValue({
+    sort: vi.fn().mockReturnValue({
+      limit: vi.fn().mockReturnValue({ exec: vi.fn().mockResolvedValue([]) }),
+      exec: vi.fn().mockResolvedValue([]),
+    }),
+    select: vi.fn().mockReturnValue({
+      lean: vi.fn().mockReturnValue({ exec: vi.fn().mockResolvedValue([]) }),
+    }),
+  }),
   findOne: vi.fn(),
   deleteMany: vi.fn(),
   paginate: vi.fn(),
   distinct: vi.fn(),
+  countDocuments: vi.fn(),
 };
 
 describe('NewsService', () => {
@@ -52,7 +61,10 @@ describe('NewsService', () => {
 
       await service.findAll(1, 10, 'all');
 
-      expect(mockNewsModel.paginate).toHaveBeenCalledWith({}, { page: 1, limit: 10 });
+      expect(mockNewsModel.paginate).toHaveBeenCalledWith(
+        {},
+        { page: 1, limit: 10, sort: { publishedAt: -1 } },
+      );
     });
 
     it('should filter by category when not "all"', async () => {
@@ -62,7 +74,7 @@ describe('NewsService', () => {
 
       expect(mockNewsModel.paginate).toHaveBeenCalledWith(
         { category: 'cybersport' },
-        { page: 1, limit: 10 },
+        { page: 1, limit: 10, sort: { publishedAt: -1 } },
       );
     });
   });
@@ -84,7 +96,9 @@ describe('NewsService', () => {
 
   describe('findByTitle', () => {
     it('should escape regex special characters', async () => {
-      const sortMock = vi.fn().mockReturnValue({ exec: vi.fn().mockResolvedValue([]) });
+      const execMock = vi.fn().mockResolvedValue([]);
+      const limitMock = vi.fn().mockReturnValue({ exec: execMock });
+      const sortMock = vi.fn().mockReturnValue({ limit: limitMock });
       mockNewsModel.find.mockReturnValue({ sort: sortMock });
 
       await service.findByTitle('test.+search');
@@ -111,13 +125,19 @@ describe('NewsService', () => {
   });
 
   describe('bulkCreate', () => {
-    it('should skip existing news', async () => {
-      mockNewsModel.distinct.mockResolvedValue(['Existing']);
+    it('should skip existing news by title+source', async () => {
+      mockNewsModel.find.mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          lean: vi.fn().mockReturnValue({
+            exec: vi.fn().mockResolvedValue([{ title: 'Existing', source: 'cybersport' }]),
+          }),
+        }),
+      });
       mockNewsModel.create.mockResolvedValue([{ title: 'New' }]);
 
       const result = await service.bulkCreate([
-        { title: 'Existing', text: 'old' },
-        { title: 'New', text: 'new' },
+        { title: 'Existing', text: 'old', source: 'cybersport' },
+        { title: 'New', text: 'new', source: 'cybersport' },
       ]);
 
       expect(mockNewsModel.create).toHaveBeenCalledWith([
@@ -127,9 +147,20 @@ describe('NewsService', () => {
     });
 
     it('should return empty array if all exist', async () => {
-      mockNewsModel.distinct.mockResolvedValue(['Existing']);
+      mockNewsModel.find.mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          lean: vi.fn().mockReturnValue({
+            exec: vi.fn().mockResolvedValue([{ title: 'Existing', source: '' }]),
+          }),
+        }),
+      });
 
       const result = await service.bulkCreate([{ title: 'Existing' }]);
+      expect(result).toEqual([]);
+    });
+
+    it('should return empty array for empty input', async () => {
+      const result = await service.bulkCreate([]);
       expect(result).toEqual([]);
     });
   });
