@@ -4,9 +4,10 @@ import { ExternalNewsController } from './external-news.controller';
 import { CybersportProvider } from './providers/cybersport.provider';
 import { CurrentsProvider } from './providers/currents.provider';
 import { NewsModule } from '../news/news.module';
+import { UploadModule } from '../upload/upload.module';
 
 @Module({
-  imports: [NewsModule],
+  imports: [NewsModule, UploadModule],
   controllers: [ExternalNewsController],
   providers: [ExternalNewsService, CybersportProvider, CurrentsProvider],
 })

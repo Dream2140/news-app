@@ -38,4 +38,20 @@ export class CloudinaryService {
       return '';
     }
   }
+
+  async uploadFromUrl(imageUrl: string, folder = 'newsapp'): Promise<string> {
+    try {
+      const result = await cloudinary.uploader.upload(imageUrl, {
+        folder,
+        resource_type: 'image',
+        transformation: [
+          { width: 1200, height: 630, crop: 'limit', quality: 'auto', format: 'webp' },
+        ],
+      });
+      return result.secure_url;
+    } catch (error) {
+      this.logger.warn(`Cloudinary URL upload failed for ${imageUrl}: ${error}`);
+      return '';
+    }
+  }
 }
