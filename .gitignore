@@ -41,3 +41,4 @@ uploads/
 *.zip
 *.7z
 *.exe
+.vercel

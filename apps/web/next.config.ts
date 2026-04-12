@@ -1,7 +1,11 @@
+import { resolve } from 'path';
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  turbopack: {
+    root: resolve(__dirname, '../..'),
+  },
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'virtus-img.cdnvideo.ru' },
