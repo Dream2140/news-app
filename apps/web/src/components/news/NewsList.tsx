@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Container, Grid, Button, Typography, Box } from '@mui/material';
@@ -15,34 +15,43 @@ const LIMIT = 12;
 export default function NewsList() {
   const [page, setPage] = useState(1);
   const dispatch = useAppDispatch();
-  const prevCategory = useRef('all');
   const searchParams = useSearchParams();
 
   const { docs, hasNextPage, isLoading, error, category } = useAppSelector((state) => state.news);
 
+  // Sync URL → Redux category (only on mount or URL change)
   useEffect(() => {
     const urlCategory = searchParams.get('category') ?? 'all';
     if (urlCategory !== category) {
       dispatch(changeCategory(urlCategory));
+      setPage(1);
     }
   }, [searchParams, category, dispatch]);
 
+  // Fetch when page or category changes
   useEffect(() => {
-    if (category !== prevCategory.current) {
-      prevCategory.current = category;
-      setPage(1);
-      dispatch(fetchNews({ limit: LIMIT, page: 1, category }));
-    } else {
-      dispatch(fetchNews({ limit: LIMIT, page, category }));
-    }
+    dispatch(fetchNews({ limit: LIMIT, page, category }));
   }, [dispatch, page, category]);
+
+  const handleCategoryChange = useCallback(
+    (newCategory: string) => {
+      if (newCategory !== category) {
+        dispatch(changeCategory(newCategory));
+        setPage(1);
+      }
+    },
+    [category, dispatch],
+  );
 
   const heroItem = docs[0];
   const restItems = docs.slice(1);
 
+  const showSkeleton = isLoading && docs.length === 0;
+  const showEmpty = !isLoading && docs.length === 0 && !error;
+
   return (
     <>
-      <CategoriesBar />
+      <CategoriesBar onCategoryChange={handleCategoryChange} />
 
       <Container maxWidth="lg" sx={{ mt: 3 }}>
         {error && (
@@ -59,45 +68,43 @@ export default function NewsList() {
           </Box>
         )}
 
-        {isLoading && docs.length === 0 ? (
+        {showSkeleton ? (
           <Grid container spacing={3}>
             <Grid size={{ xs: 12, md: 8 }}>
               <NewsCard loading variant="hero" />
             </Grid>
             <Grid size={{ xs: 12, md: 4 }}>
               <Grid container spacing={3}>
-                {Array.from({ length: 2 }).map((_, i) => (
+                {[0, 1].map((i) => (
                   <Grid key={`sk-side-${i}`} size={12}>
                     <NewsCard loading />
                   </Grid>
                 ))}
               </Grid>
             </Grid>
-            {Array.from({ length: 4 }).map((_, i) => (
+            {[0, 1, 2, 3].map((i) => (
               <Grid key={`sk-${i}`} size={{ xs: 12, sm: 6, md: 4 }}>
                 <NewsCard loading />
               </Grid>
             ))}
           </Grid>
+        ) : showEmpty ? (
+          <Typography variant="h6" color="text.secondary" sx={{ textAlign: 'center', py: 8 }}>
+            No articles found
+          </Typography>
         ) : (
           <InfiniteScroll
             dataLength={docs.length}
             next={() => setPage((p) => p + 1)}
             hasMore={hasNextPage}
             endMessage={
-              docs.length > 0 ? (
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ textAlign: 'center', py: 4 }}
-                >
-                  You&apos;re all caught up
-                </Typography>
-              ) : (
-                <Typography variant="h6" color="text.secondary" sx={{ textAlign: 'center', py: 8 }}>
-                  No articles found
-                </Typography>
-              )
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ textAlign: 'center', py: 4 }}
+              >
+                You&apos;re all caught up
+              </Typography>
             }
             loader={null}
           >

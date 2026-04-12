@@ -2,11 +2,13 @@
 
 import { Box, Chip, Container } from '@mui/material';
 import { NEWS_CATEGORIES } from '@newsapp/shared';
-import { useAppDispatch, useAppSelector } from '@/hooks/useAppDispatch';
-import { changeCategory } from '@/store/slices/newsSlice';
+import { useAppSelector } from '@/hooks/useAppDispatch';
 
-export default function CategoriesBar() {
-  const dispatch = useAppDispatch();
+interface CategoriesBarProps {
+  onCategoryChange?: (category: string) => void;
+}
+
+export default function CategoriesBar({ onCategoryChange }: CategoriesBarProps) {
   const currentCategory = useAppSelector((state) => state.news.category);
 
   return (
@@ -27,7 +29,7 @@ export default function CategoriesBar() {
             <Chip
               key={cat.id}
               label={cat.name}
-              onClick={() => dispatch(changeCategory(cat.type))}
+              onClick={() => onCategoryChange?.(cat.type)}
               variant={currentCategory === cat.type ? 'filled' : 'outlined'}
               color={currentCategory === cat.type ? 'primary' : 'default'}
               sx={{ fontWeight: 600, flexShrink: 0 }}

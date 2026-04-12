@@ -46,7 +46,13 @@ const newsSlice = createSlice({
   initialState,
   reducers: {
     changeCategory(state, action: PayloadAction<string>) {
-      return { ...initialState, category: action.payload };
+      state.category = action.payload;
+      state.docs = [];
+      state.page = 1;
+      state.hasNextPage = false;
+      state.error = null;
+      state.searchQuery = '';
+      state.isLoading = true;
     },
     resetNews() {
       return initialState;
