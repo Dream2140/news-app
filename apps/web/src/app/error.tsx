@@ -1,7 +1,5 @@
 'use client';
 
-import { Container, Typography, Button } from '@mui/material';
-
 export default function Error({
   error,
   reset,
@@ -10,16 +8,22 @@ export default function Error({
   reset: () => void;
 }) {
   return (
-    <Container sx={{ mt: 8, textAlign: 'center' }}>
-      <Typography variant="h4" gutterBottom>
-        Something went wrong
-      </Typography>
-      <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+    <div className="stage" style={{ paddingTop: 80, paddingBottom: 80, textAlign: 'center' }}>
+      <div className="big-code glitch" data-text="ERR">
+        ERR
+      </div>
+      <div className="display" style={{ fontSize: 24, marginTop: 20, color: 'var(--red)' }}>
+        ::: SYSTEM FAULT :::
+      </div>
+      <div
+        className="mono"
+        style={{ marginTop: 12, color: 'var(--ink-dim)', fontSize: 12, wordBreak: 'break-word' }}
+      >
         {error.message}
-      </Typography>
-      <Button variant="contained" onClick={reset}>
-        Try again
-      </Button>
-    </Container>
+      </div>
+      <button type="button" onClick={reset} className="btn btn-mag" style={{ marginTop: 32 }}>
+        ↻ RETRY
+      </button>
+    </div>
   );
 }

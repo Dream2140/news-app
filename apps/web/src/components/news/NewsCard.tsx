@@ -2,13 +2,12 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { Card, CardContent, Box, Chip, Skeleton, Typography } from '@mui/material';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
-
-const PLACEHOLDER = 'https://placehold.co/800x400/1a1a2e/e94560?text=Dream+News';
+import Link from 'next/link';
+import { catColor, catName, timeAgo, fmtNum } from '@/lib/categories';
 
 interface NewsCardProps {
   loading?: boolean;
+  href?: string;
   imageUrl?: string;
   title?: string;
   description?: string;
@@ -16,11 +15,23 @@ interface NewsCardProps {
   readingTime?: number;
   source?: string;
   publishedAt?: number;
-  variant?: 'default' | 'hero';
+  variant?: 'default' | 'hero' | 'wide';
+  breaking?: boolean;
+  views?: number;
+}
+
+function isValidUrl(str: string): boolean {
+  try {
+    const u = new URL(str);
+    return u.protocol === 'http:' || u.protocol === 'https:';
+  } catch {
+    return false;
+  }
 }
 
 export default function NewsCard({
   loading,
+  href,
   imageUrl,
   title,
   description,
@@ -29,142 +40,95 @@ export default function NewsCard({
   source,
   publishedAt,
   variant = 'default',
+  breaking = false,
+  views,
 }: NewsCardProps) {
   const [imgError, setImgError] = useState(false);
-  const isHero = variant === 'hero';
 
-  if (loading) {
+  const content = (
+    <>
+      <span className="tick tl" />
+      <span className="tick tr" />
+      <span className="tick bl" />
+      <span className="tick br" />
+
+      <div className="card-img ph">
+        {!loading && imageUrl && isValidUrl(imageUrl) && !imgError ? (
+          <Image
+            src={imageUrl}
+            alt={title ?? 'news'}
+            fill
+            sizes={variant === 'hero' ? '100vw' : '(max-width: 720px) 100vw, 400px'}
+            style={{ objectFit: 'cover' }}
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <span>{loading ? 'LOADING // SIGNAL' : 'SIGNAL // NO IMAGE'}</span>
+        )}
+
+        {!loading && (
+          <div className="card-meta">
+            {category && (
+              <span className="chip" style={{ color: catColor(category) }}>
+                <span className="chip-dot" />
+                {catName(category)}
+              </span>
+            )}
+            {breaking && (
+              <span className="chip chip-live">
+                <span className="chip-dot" />
+                BREAKING
+              </span>
+            )}
+          </div>
+        )}
+
+        {!loading && readingTime ? <div className="ph-label mono">⊙ {readingTime} мин</div> : null}
+      </div>
+
+      <div className="card-body">
+        {loading ? (
+          <>
+            <div
+              style={{
+                height: 20,
+                background: 'var(--bg-2)',
+                width: '85%',
+                marginBottom: 6,
+              }}
+            />
+            <div style={{ height: 20, background: 'var(--bg-2)', width: '60%' }} />
+          </>
+        ) : (
+          <>
+            <h3 className="card-title">{title}</h3>
+            {description && (variant === 'hero' || variant === 'wide') && (
+              <p className="card-excerpt">{description}</p>
+            )}
+            <div className="card-foot">
+              <span>
+                {source ? source.toUpperCase() : '—'}
+                {publishedAt ? ' · ' + timeAgo(publishedAt) : ''}
+              </span>
+              {views !== undefined && (
+                <span style={{ color: 'var(--cyn)' }}>▸ {fmtNum(views)}</span>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+    </>
+  );
+
+  const className = 'news-card' + (variant !== 'default' ? ' ' + variant : '');
+
+  if (href && !loading) {
     return (
-      <Card sx={{ height: '100%' }}>
-        <Skeleton animation="wave" variant="rectangular" height={isHero ? 360 : 200} />
-        <CardContent>
-          <Skeleton animation="wave" width="30%" height={24} sx={{ mb: 1 }} />
-          <Skeleton animation="wave" width="90%" height={28} />
-          <Skeleton animation="wave" width="70%" height={28} />
-          <Skeleton animation="wave" width="60%" height={20} sx={{ mt: 1 }} />
-        </CardContent>
-      </Card>
+      <Link href={href} className={className}>
+        {content}
+      </Link>
     );
   }
 
-  const imgSrc = imgError || !imageUrl ? PLACEHOLDER : imageUrl;
-  const date = publishedAt
-    ? new Date(publishedAt).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      })
-    : '';
-
-  return (
-    <Card
-      sx={{
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        cursor: 'pointer',
-        '&:hover': { transform: 'translateY(-4px)', boxShadow: 8 },
-        overflow: 'hidden',
-      }}
-    >
-      <Box sx={{ position: 'relative', height: isHero ? 360 : 200, overflow: 'hidden' }}>
-        <Image
-          src={imgSrc}
-          alt={title ?? 'News'}
-          fill
-          sizes={isHero ? '100vw' : '(max-width: 600px) 100vw, 400px'}
-          style={{ objectFit: 'cover' }}
-          onError={() => setImgError(true)}
-        />
-        <Box
-          sx={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: '50%',
-            background: 'linear-gradient(transparent, rgba(0,0,0,0.7))',
-          }}
-        />
-        {category && (
-          <Chip
-            label={category}
-            size="small"
-            color="primary"
-            sx={{ position: 'absolute', top: 12, left: 12, textTransform: 'capitalize' }}
-          />
-        )}
-        {readingTime && (
-          <Chip
-            icon={<AccessTimeIcon sx={{ fontSize: '0.8rem !important' }} />}
-            label={`${readingTime} min`}
-            size="small"
-            sx={{
-              position: 'absolute',
-              top: 12,
-              right: 12,
-              bgcolor: 'rgba(0,0,0,0.6)',
-              color: '#fff',
-              fontSize: '0.7rem',
-            }}
-          />
-        )}
-      </Box>
-
-      <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-        <Typography
-          variant={isHero ? 'h5' : 'subtitle1'}
-          sx={{
-            fontWeight: 700,
-            mb: 1,
-            display: '-webkit-box',
-            WebkitLineClamp: isHero ? 3 : 2,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-            lineHeight: 1.3,
-          }}
-        >
-          {title}
-        </Typography>
-
-        {description && (
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{
-              mb: 1.5,
-              display: '-webkit-box',
-              WebkitLineClamp: isHero ? 3 : 2,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-            }}
-          >
-            {description}
-          </Typography>
-        )}
-
-        <Box sx={{ mt: 'auto', display: 'flex', alignItems: 'center', gap: 1 }}>
-          {date && (
-            <Typography variant="caption" color="text.secondary">
-              {date}
-            </Typography>
-          )}
-          {source && (
-            <>
-              <Typography variant="caption" color="text.secondary">
-                &middot;
-              </Typography>
-              <Typography
-                variant="caption"
-                color="primary.main"
-                sx={{ textTransform: 'capitalize', fontWeight: 600 }}
-              >
-                {source}
-              </Typography>
-            </>
-          )}
-        </Box>
-      </CardContent>
-    </Card>
-  );
+  return <article className={className}>{content}</article>;
 }

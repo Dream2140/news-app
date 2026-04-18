@@ -1,8 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Box, CircularProgress, Typography } from '@mui/material';
-import CommentIcon from '@mui/icons-material/Comment';
 import CommentItem from './CommentItem';
 import CommentForm from './CommentForm';
 import { useAuth } from '@/contexts/AuthContext';
@@ -34,32 +32,46 @@ export default function CommentsList({ newsId }: { newsId: string }) {
   };
 
   return (
-    <Box sx={{ mt: 4 }}>
-      <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-        <CommentIcon /> Comments ({comments.length})
-      </Typography>
+    <div className="comments-wrap">
+      <div className="between" style={{ marginBottom: 12 }}>
+        <span className="chip" style={{ color: 'var(--cyn)' }}>
+          <span className="chip-dot" />
+          COMMENTS · {comments.length}
+        </span>
+        <span className="label mono" style={{ color: 'var(--ink-dim)' }}>
+          thread // открытый канал
+        </span>
+      </div>
+
       <CommentForm newsId={newsId} onCreated={handleCreated} />
+
       {isLoading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-          <CircularProgress size={32} />
-        </Box>
+        <div
+          className="label mono"
+          style={{ textAlign: 'center', padding: 24, color: 'var(--ink-dim)' }}
+        >
+          ::: LOADING THREAD :::
+        </div>
       ) : comments.length === 0 ? (
-        <Box sx={{ textAlign: 'center', py: 6, bgcolor: 'action.hover', borderRadius: 2 }}>
-          <CommentIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 1 }} />
-          <Typography color="text.secondary">
-            No comments yet. Be the first to share your thoughts!
-          </Typography>
-        </Box>
+        <div className="frame" style={{ padding: 32, textAlign: 'center', marginTop: 12 }}>
+          <div className="corner-bl" />
+          <div className="corner-br" />
+          <div className="label mono" style={{ color: 'var(--ink-dim)' }}>
+            ◫ канал пуст · будь первым
+          </div>
+        </div>
       ) : (
-        comments.map((c) => (
-          <CommentItem
-            key={c._id}
-            comment={c}
-            canDelete={c.user === user?.id}
-            onDelete={handleDelete}
-          />
-        ))
+        <div className="comments-list">
+          {comments.map((c) => (
+            <CommentItem
+              key={c._id}
+              comment={c}
+              canDelete={c.user === user?.id}
+              onDelete={handleDelete}
+            />
+          ))}
+        </div>
       )}
-    </Box>
+    </div>
   );
 }

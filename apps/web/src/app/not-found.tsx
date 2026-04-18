@@ -1,20 +1,20 @@
-import { Container, Typography, Button } from '@mui/material';
 import Link from 'next/link';
 
 export default function NotFound() {
   return (
-    <Container sx={{ mt: 8, textAlign: 'center' }}>
-      <Typography variant="h2" gutterBottom>
+    <div className="stage" style={{ paddingTop: 80, paddingBottom: 80, textAlign: 'center' }}>
+      <div className="big-code glitch" data-text="404">
         404
-      </Typography>
-      <Typography variant="h5" sx={{ mb: 4 }}>
-        Page not found
-      </Typography>
-      <Link href="/">
-        <Button variant="contained" size="large">
-          Go Home
-        </Button>
+      </div>
+      <div className="display" style={{ fontSize: 28, marginTop: 20 }}>
+        SIGNAL LOST
+      </div>
+      <div className="label mono" style={{ marginTop: 8, color: 'var(--ink-dim)' }}>
+        404 // запрошенный узел не найден в сети
+      </div>
+      <Link href="/" className="btn btn-cyn" style={{ marginTop: 32, display: 'inline-block' }}>
+        ← BACK TO FEED
       </Link>
-    </Container>
+    </div>
   );
 }

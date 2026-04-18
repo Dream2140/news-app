@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Box, Button, TextField } from '@mui/material';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiClient } from '@/lib/api-client';
 import type { IComment } from '@newsapp/shared';
@@ -24,7 +23,10 @@ export default function CommentForm({
     if (!content.trim()) return;
     setIsLoading(true);
     try {
-      const res = await apiClient.post('/comment', { content: content.trim(), newsId });
+      const res = await apiClient.post('/comment', {
+        content: content.trim(),
+        newsId,
+      });
       onCreated(res.data.data);
       setContent('');
     } catch {
@@ -34,27 +36,51 @@ export default function CommentForm({
     }
   };
 
-  if (!isAuthenticated) return null;
+  if (!isAuthenticated) {
+    return (
+      <div
+        className="frame"
+        style={{
+          padding: 16,
+          textAlign: 'center',
+          marginBottom: 16,
+          color: 'var(--ink-dim)',
+        }}
+      >
+        <div className="corner-bl" />
+        <div className="corner-br" />
+        <span className="label mono">⚷ авторизуйтесь, чтобы оставить отклик</span>
+      </div>
+    );
+  }
 
   return (
-    <Box component="form" onSubmit={handleSubmit} sx={{ mb: 3 }}>
-      <TextField
-        label="Write a comment..."
-        multiline
+    <form onSubmit={handleSubmit} className="comment-new frame">
+      <div className="corner-bl" />
+      <div className="corner-br" />
+      <div className="between" style={{ marginBottom: 8 }}>
+        <span className="label">NEW REPLY // отклик</span>
+        <span className="mono" style={{ fontSize: 11, color: 'var(--ink-ghost)' }}>
+          {content.length}/{MAX_COMMENT_LENGTH}
+        </span>
+      </div>
+      <textarea
+        className="input"
         rows={3}
-        fullWidth
         value={content}
         onChange={(e) => setContent(e.target.value)}
-        slotProps={{ htmlInput: { maxLength: MAX_COMMENT_LENGTH } }}
+        placeholder="> введите сообщение в канал…"
+        maxLength={MAX_COMMENT_LENGTH}
+        style={{ resize: 'vertical', fontFamily: 'JetBrains Mono, monospace' }}
       />
-      <Button
-        type="submit"
-        variant="contained"
-        sx={{ mt: 1 }}
-        disabled={!content.trim() || isLoading}
-      >
-        {isLoading ? 'Posting...' : 'Post Comment'}
-      </Button>
-    </Box>
+      <div className="between" style={{ marginTop: 10 }}>
+        <span className="mono" style={{ fontSize: 11, color: 'var(--ink-ghost)' }}>
+          канал: #{newsId.slice(-6)}
+        </span>
+        <button type="submit" className="btn btn-mag" disabled={!content.trim() || isLoading}>
+          {isLoading ? 'SENDING…' : 'TRANSMIT ↗'}
+        </button>
+      </div>
+    </form>
   );
 }

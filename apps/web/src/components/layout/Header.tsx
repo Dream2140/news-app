@@ -1,236 +1,246 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import {
-  AppBar,
-  Box,
-  Toolbar,
-  IconButton,
-  Typography,
-  Avatar,
-  Menu,
-  MenuItem,
-  InputBase,
-  Drawer,
-  List,
-  ListItemButton,
-  ListItemText,
-  Divider,
-  useMediaQuery,
-  useTheme,
-} from '@mui/material';
-import AccountCircle from '@mui/icons-material/AccountCircle';
-import SearchIcon from '@mui/icons-material/Search';
-import MenuIcon from '@mui/icons-material/Menu';
-import DarkModeIcon from '@mui/icons-material/DarkMode';
-import LightModeIcon from '@mui/icons-material/LightMode';
-import NewspaperIcon from '@mui/icons-material/Newspaper';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { useThemeMode } from '@/theme/ThemeProvider';
 import LoginModal from '@/components/auth/LoginModal';
-import { UserRole } from '@newsapp/shared';
+import { CATEGORIES } from '@/lib/categories';
+import { NewsCategory, UserRole } from '@newsapp/shared';
 
 export default function Header() {
   const router = useRouter();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const { mode, toggleTheme } = useThemeMode();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { user, isAuthenticated, logout } = useAuth();
 
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [query, setQuery] = useState('');
   const [loginOpen, setLoginOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [time, setTime] = useState<string>('');
 
-  const handleSearch = () => {
-    if (searchQuery.trim()) {
-      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+  useEffect(() => {
+    const update = () => {
+      setTime(
+        new Date().toLocaleTimeString('ru-RU', {
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+      );
+    };
+    update();
+    const t = setInterval(update, 30_000);
+    return () => clearInterval(t);
+  }, []);
+
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = query.trim();
+    if (q) {
+      router.push(`/search?q=${encodeURIComponent(q)}`);
       setSearchOpen(false);
-      setSearchQuery('');
+      setQuery('');
     }
   };
 
+  const activeCategory = (() => {
+    if (pathname === '/') {
+      return (searchParams.get('category') as NewsCategory | null) ?? NewsCategory.ALL;
+    }
+    return null;
+  })();
+
   return (
     <>
-      <AppBar position="fixed" elevation={0}>
-        <Toolbar sx={{ gap: 1 }}>
-          {isMobile && (
-            <IconButton color="inherit" onClick={() => setDrawerOpen(true)} edge="start">
-              <MenuIcon />
-            </IconButton>
-          )}
-
-          <Link
-            href="/"
-            style={{
-              color: 'inherit',
-              textDecoration: 'none',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-            }}
-          >
-            <NewspaperIcon sx={{ color: 'primary.main' }} />
-            <Typography variant="h6" noWrap sx={{ fontWeight: 800 }}>
-              Dream
-              <Box component="span" sx={{ color: 'primary.main' }}>
-                News
-              </Box>
-            </Typography>
+      <header className="site-head">
+        <div className="site-head-top">
+          <Link href="/" className="brand" aria-label="NEURO.NEWS">
+            <div className="brand-mark">
+              <div className="brand-hex" />
+              <div className="brand-hex-inner" />
+            </div>
+            <div>
+              <div className="brand-main">
+                <span>NEURO</span>
+                <span className="brand-dot">.</span>
+                <span style={{ color: 'var(--mag)' }}>NEWS</span>
+              </div>
+              <div className="brand-sub mono">v26.04 // NEO-TOKYO RELAY</div>
+            </div>
           </Link>
 
-          {!isMobile && (
-            <Box sx={{ display: 'flex', gap: 0.5, ml: 3 }}>
-              {['All', 'Cybersport', 'Technology', 'Politic'].map((cat) => (
-                <Link
-                  key={cat}
-                  href={cat === 'All' ? '/' : `/?category=${cat.toLowerCase()}`}
-                  style={{ textDecoration: 'none' }}
+          <div className="head-meta">
+            <span>
+              UPLINK: <b style={{ color: 'var(--lim)' }}>STABLE</b>
+            </span>
+            <span>LAT 12ms</span>
+            <span>NODES 4 218</span>
+            <span>
+              東京 <b style={{ color: 'var(--cyn)' }}>14°C</b> · {time}
+            </span>
+          </div>
+
+          <div className="head-actions">
+            {searchOpen ? (
+              <form onSubmit={submit} className="head-search">
+                <span className="mono" style={{ color: 'var(--cyn)' }}>
+                  ›
+                </span>
+                <input
+                  autoFocus
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="search // поиск по базе"
+                  className="input"
+                  style={{
+                    border: 'none',
+                    background: 'transparent',
+                    padding: 8,
+                    width: 220,
+                    boxShadow: 'none',
+                  }}
+                  onBlur={() => {
+                    if (!query) setSearchOpen(false);
+                  }}
+                />
+                <button
+                  type="button"
+                  className="icon-btn"
+                  onClick={() => {
+                    setSearchOpen(false);
+                    setQuery('');
+                  }}
+                  aria-label="Close search"
                 >
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      color: 'text.secondary',
-                      px: 1.5,
-                      py: 0.5,
-                      borderRadius: 1,
-                      fontWeight: 600,
-                      fontSize: '0.8rem',
-                      '&:hover': { color: 'primary.main', bgcolor: 'rgba(233,69,96,0.08)' },
-                      transition: 'all 0.2s',
-                    }}
-                  >
-                    {cat}
-                  </Typography>
-                </Link>
-              ))}
-            </Box>
-          )}
-
-          <Box sx={{ flexGrow: 1 }} />
-
-          {searchOpen ? (
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                bgcolor: 'background.paper',
-                borderRadius: 2,
-                px: 1.5,
-                border: '1px solid',
-                borderColor: 'primary.main',
-              }}
-            >
-              <InputBase
-                autoFocus
-                placeholder="Search news..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                onBlur={() => !searchQuery && setSearchOpen(false)}
-                sx={{ color: 'text.primary', width: 200 }}
-              />
-              <IconButton size="small" onClick={handleSearch} color="primary">
-                <SearchIcon />
-              </IconButton>
-            </Box>
-          ) : (
-            <IconButton color="inherit" onClick={() => setSearchOpen(true)}>
-              <SearchIcon />
-            </IconButton>
-          )}
-
-          <IconButton color="inherit" onClick={toggleTheme}>
-            {mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
-          </IconButton>
-
-          {isAuthenticated ? (
-            <>
-              <IconButton onClick={(e) => setAnchorEl(e.currentTarget)} color="inherit">
-                <Avatar
-                  sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.875rem' }}
-                >
-                  {user?.nickname?.[0]?.toUpperCase() ?? '?'}
-                </Avatar>
-              </IconButton>
-              <Menu
-                anchorEl={anchorEl}
-                open={Boolean(anchorEl)}
-                onClose={() => setAnchorEl(null)}
-                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                  ✕
+                </button>
+              </form>
+            ) : (
+              <button
+                className="icon-btn"
+                onClick={() => setSearchOpen(true)}
+                title="Search"
+                aria-label="Search"
               >
-                <MenuItem disabled sx={{ opacity: '1 !important' }}>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                    {user?.nickname}
-                  </Typography>
-                </MenuItem>
-                <Divider />
-                {user?.role === UserRole.ADMIN && (
-                  <MenuItem
-                    onClick={() => {
-                      setAnchorEl(null);
-                      router.push('/admin');
-                    }}
-                  >
-                    Admin Panel
-                  </MenuItem>
-                )}
-                <MenuItem
-                  onClick={() => {
-                    setAnchorEl(null);
-                    router.push('/profile');
-                  }}
-                >
-                  Profile
-                </MenuItem>
-                <MenuItem
-                  onClick={() => {
-                    logout();
-                    setAnchorEl(null);
-                  }}
-                  sx={{ color: 'error.main' }}
-                >
-                  Logout
-                </MenuItem>
-              </Menu>
-            </>
-          ) : (
-            <IconButton onClick={() => setLoginOpen(true)} color="inherit">
-              <AccountCircle />
-            </IconButton>
-          )}
-        </Toolbar>
-      </AppBar>
-
-      <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)}>
-        <Box sx={{ width: 250, pt: 2 }}>
-          <Typography variant="h6" sx={{ px: 2, mb: 2, fontWeight: 800 }}>
-            Dream
-            <Box component="span" sx={{ color: 'primary.main' }}>
-              News
-            </Box>
-          </Typography>
-          <List>
-            {['All', 'Cybersport', 'Technology', 'Politic', 'Entertainment', 'Health'].map(
-              (cat) => (
-                <ListItemButton
-                  key={cat}
-                  onClick={() => {
-                    router.push(cat === 'All' ? '/' : `/?category=${cat.toLowerCase()}`);
-                    setDrawerOpen(false);
-                  }}
-                >
-                  <ListItemText primary={cat} />
-                </ListItemButton>
-              ),
+                ⌕
+              </button>
             )}
-          </List>
-        </Box>
-      </Drawer>
+
+            {isAuthenticated && user ? (
+              <div style={{ position: 'relative' }}>
+                <button
+                  className="avatar-btn"
+                  onClick={() => setMenuOpen((v) => !v)}
+                  aria-label="Account"
+                >
+                  {user.nickname?.[0]?.toUpperCase() ?? 'K'}
+                </button>
+                {menuOpen && (
+                  <>
+                    <div
+                      onClick={() => setMenuOpen(false)}
+                      style={{ position: 'fixed', inset: 0, zIndex: 49 }}
+                      aria-hidden
+                    />
+                    <div
+                      className="frame"
+                      style={{
+                        position: 'absolute',
+                        right: 0,
+                        top: 'calc(100% + 8px)',
+                        minWidth: 200,
+                        background: 'var(--bg-1)',
+                        zIndex: 51,
+                      }}
+                    >
+                      <div className="corner-bl" />
+                      <div className="corner-br" />
+                      <div
+                        style={{
+                          padding: '10px 14px',
+                          borderBottom: '1px solid var(--line)',
+                          fontWeight: 600,
+                        }}
+                      >
+                        @{user.nickname}
+                      </div>
+                      {user.role === UserRole.ADMIN && (
+                        <button
+                          className="aside-item"
+                          style={{ padding: '10px 14px', borderTop: 'none', width: '100%' }}
+                          onClick={() => {
+                            setMenuOpen(false);
+                            router.push('/admin');
+                          }}
+                        >
+                          Admin Panel
+                        </button>
+                      )}
+                      <button
+                        className="aside-item"
+                        style={{ padding: '10px 14px', borderTop: 'none', width: '100%' }}
+                        onClick={() => {
+                          setMenuOpen(false);
+                          router.push('/profile');
+                        }}
+                      >
+                        Profile
+                      </button>
+                      <button
+                        className="aside-item"
+                        style={{
+                          padding: '10px 14px',
+                          borderTop: '1px solid var(--line)',
+                          width: '100%',
+                          color: 'var(--red)',
+                        }}
+                        onClick={() => {
+                          setMenuOpen(false);
+                          logout();
+                        }}
+                      >
+                        LOG OUT ↗
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            ) : (
+              <button className="btn btn-cyn" onClick={() => setLoginOpen(true)}>
+                LOG IN
+              </button>
+            )}
+          </div>
+        </div>
+
+        <nav className="site-nav" aria-label="Categories">
+          <div className="nav-inner">
+            {CATEGORIES.map((c) => {
+              const isActive = activeCategory === c.id;
+              const href = c.id === NewsCategory.ALL ? '/' : `/?category=${c.id}`;
+              return (
+                <Link
+                  key={c.id}
+                  href={href}
+                  className={'nav-pill' + (isActive ? ' active' : '')}
+                  style={{ ['--cat' as string]: c.color }}
+                >
+                  <span className="nav-pill-jp">{c.jp}</span>
+                  <span className="nav-pill-name">{c.ru.toUpperCase()}</span>
+                  <span className="nav-pill-en">{c.name}</span>
+                </Link>
+              );
+            })}
+            <div style={{ flex: 1 }} />
+            <div className="nav-counter">
+              <span>FEED/</span>
+              <b style={{ color: 'var(--mag)' }}>0042</b>
+              <span style={{ color: 'var(--ink-ghost)', marginLeft: 8 }}>· SIGNAL 97%</span>
+            </div>
+          </div>
+        </nav>
+      </header>
 
       <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
     </>

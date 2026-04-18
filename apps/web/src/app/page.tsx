@@ -1,14 +1,15 @@
 import { Suspense } from 'react';
-import { CircularProgress, Box } from '@mui/material';
 import NewsList from '@/components/news/NewsList';
 
 export default function HomePage() {
   return (
     <Suspense
       fallback={
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-          <CircularProgress />
-        </Box>
+        <div className="stage" style={{ padding: '80px 20px', textAlign: 'center' }}>
+          <div className="label mono" style={{ color: 'var(--cyn)' }}>
+            ::: INITIALIZING FEED :::
+          </div>
+        </div>
       }
     >
       <NewsList />

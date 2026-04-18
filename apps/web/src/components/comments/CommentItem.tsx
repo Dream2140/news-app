@@ -1,17 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  Avatar,
-  Box,
-  IconButton,
-  Typography,
-  Dialog,
-  DialogTitle,
-  DialogActions,
-  Button,
-} from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
 import type { IComment } from '@newsapp/shared';
 
 interface CommentItemProps {
@@ -23,63 +12,69 @@ interface CommentItemProps {
 export default function CommentItem({ comment, canDelete, onDelete }: CommentItemProps) {
   const [confirmOpen, setConfirmOpen] = useState(false);
 
-  return (
-    <>
-      <Box
-        sx={{
-          display: 'flex',
-          gap: 2,
-          mb: 2,
-          p: 2,
-          bgcolor: 'action.hover',
-          borderRadius: 2,
-          transition: 'background-color 0.2s',
-        }}
-      >
-        <Avatar sx={{ bgcolor: 'primary.main', width: 36, height: 36, fontSize: '0.875rem' }}>
-          {comment.nickname?.[0]?.toUpperCase() ?? '?'}
-        </Avatar>
-        <Box sx={{ flexGrow: 1, minWidth: 0 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-            <Typography variant="subtitle2">{comment.nickname}</Typography>
-            <Typography variant="caption" color="text.secondary">
-              {new Date(comment.publishedAt).toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-              })}
-            </Typography>
-          </Box>
-          <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>
-            {comment.content}
-          </Typography>
-        </Box>
-        {canDelete && (
-          <IconButton
-            onClick={() => setConfirmOpen(true)}
-            size="small"
-            sx={{ color: 'text.secondary', '&:hover': { color: 'error.main' } }}
-          >
-            <DeleteIcon fontSize="small" />
-          </IconButton>
-        )}
-      </Box>
+  const date = new Date(comment.publishedAt).toLocaleDateString('ru-RU', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
 
-      <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>
-        <DialogTitle>Delete this comment?</DialogTitle>
-        <DialogActions>
-          <Button onClick={() => setConfirmOpen(false)}>Cancel</Button>
-          <Button
-            color="error"
+  return (
+    <div className="comment frame">
+      <div className="corner-bl" />
+      <div className="corner-br" />
+      <div className="comment-av">
+        <div className="comment-av-hex">{comment.nickname?.[0]?.toUpperCase() ?? '?'}</div>
+      </div>
+      <div className="comment-body">
+        <div className="row gap-3" style={{ alignItems: 'baseline', flexWrap: 'wrap' }}>
+          <span className="comment-nick">@{comment.nickname}</span>
+          <span className="mono" style={{ fontSize: 11, color: 'var(--ink-ghost)' }}>
+            {date}
+          </span>
+        </div>
+        <div className="comment-text">{comment.content}</div>
+      </div>
+      {canDelete && !confirmOpen && (
+        <button
+          type="button"
+          className="icon-btn comment-del"
+          onClick={() => setConfirmOpen(true)}
+          aria-label="Delete"
+        >
+          ✕
+        </button>
+      )}
+      {canDelete && confirmOpen && (
+        <div className="comment-confirm">
+          <span className="mono" style={{ fontSize: 11 }}>
+            delete?
+          </span>
+          <button
+            type="button"
+            className="btn btn-cyn"
+            style={{ padding: '4px 10px', fontSize: 10 }}
+            onClick={() => setConfirmOpen(false)}
+          >
+            CANCEL
+          </button>
+          <button
+            type="button"
+            className="btn btn-mag"
+            style={{
+              padding: '4px 10px',
+              fontSize: 10,
+              background: 'var(--red)',
+              color: '#05060c',
+            }}
             onClick={() => {
               onDelete(comment._id);
               setConfirmOpen(false);
             }}
           >
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </>
+            DELETE
+          </button>
+        </div>
+      )}
+    </div>
   );
 }

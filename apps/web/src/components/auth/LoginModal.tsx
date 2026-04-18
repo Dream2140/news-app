@@ -1,17 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  Button,
-  CircularProgress,
-  Fade,
-  FormHelperText,
-  Modal,
-  TextField,
-  Box,
-  Typography,
-} from '@mui/material';
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSnackbar } from '@/contexts/SnackbarContext';
 import { apiClient } from '@/lib/api-client';
@@ -33,9 +22,10 @@ export default function LoginModal({ open, onClose }: LoginModalProps) {
   const [nickname, setNickname] = useState('');
   const [forgotLoading, setForgotLoading] = useState(false);
 
+  if (!open) return null;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (mode === 'forgot') {
       setForgotLoading(true);
       try {
@@ -49,10 +39,8 @@ export default function LoginModal({ open, onClose }: LoginModalProps) {
       }
       return;
     }
-
     const success =
       mode === 'login' ? await login(email, password) : await register(nickname, email, password);
-
     if (success) handleClose();
   };
 
@@ -70,160 +58,122 @@ export default function LoginModal({ open, onClose }: LoginModalProps) {
   };
 
   const title =
-    mode === 'login' ? 'Welcome back' : mode === 'register' ? 'Create account' : 'Reset password';
+    mode === 'login' ? 'SECURE UPLINK' : mode === 'register' ? 'NEW IDENTITY' : 'RESET KEY';
+  const submitLabel =
+    mode === 'login' ? 'AUTHENTICATE ↗' : mode === 'register' ? 'REGISTER NODE ↗' : 'SEND LINK ↗';
+  const busy = isLoading || forgotLoading;
 
   return (
-    <Modal
-      open={open}
-      onClose={handleClose}
-      closeAfterTransition
-      sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-    >
-      <Fade in={open}>
-        <Box
-          sx={{
-            bgcolor: 'background.paper',
-            borderRadius: 3,
-            boxShadow: 24,
-            p: 4,
-            width: { xs: '90vw', sm: 400 },
-            maxWidth: 400,
-          }}
-        >
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3 }}>
-            <Box
-              sx={{
-                width: 48,
-                height: 48,
-                borderRadius: '50%',
-                bgcolor: 'primary.main',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                mb: 1.5,
-              }}
-            >
-              <LockOutlinedIcon sx={{ color: 'white' }} />
-            </Box>
-            <Typography variant="h6">{title}</Typography>
-            {mode === 'forgot' && (
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{ mt: 0.5, textAlign: 'center' }}
-              >
-                Enter your email and we&apos;ll send a reset link
-              </Typography>
-            )}
-          </Box>
+    <div className="modal-backdrop" onClick={handleClose}>
+      <div className="modal-frame frame" onClick={(e) => e.stopPropagation()}>
+        <div className="corner-bl" />
+        <div className="corner-br" />
+        <button type="button" className="icon-btn modal-x" onClick={handleClose} aria-label="Close">
+          ✕
+        </button>
+        <div className="modal-head">
+          <span className="chip" style={{ color: 'var(--mag)' }}>
+            <span className="chip-dot" />
+            {title}
+          </span>
+          <div className="display" style={{ fontSize: 22, marginTop: 10 }}>
+            {mode === 'login'
+              ? 'ДОБРО ПОЖАЛОВАТЬ'
+              : mode === 'register'
+                ? 'НОВЫЙ УЗЕЛ'
+                : 'СБРОС КЛЮЧА'}
+          </div>
+          {mode === 'forgot' && (
+            <div className="label mono" style={{ marginTop: 6, color: 'var(--ink-dim)' }}>
+              Enter email // мы отправим ссылку для сброса
+            </div>
+          )}
+        </div>
 
-          <form onSubmit={handleSubmit}>
-            {mode === 'register' && (
-              <TextField
-                label="Nickname"
-                fullWidth
-                margin="normal"
-                size="small"
+        <form onSubmit={handleSubmit} className="modal-form">
+          {mode === 'register' && (
+            <label className="field">
+              <span className="label">NICKNAME</span>
+              <input
+                className="input"
                 value={nickname}
                 onChange={(e) => setNickname(e.target.value)}
                 required
-                slotProps={{ htmlInput: { minLength: 2 } }}
+                minLength={2}
+                autoFocus
               />
-            )}
-            <TextField
-              label="Email"
+            </label>
+          )}
+          <label className="field">
+            <span className="label">EMAIL // почта</span>
+            <input
+              className="input"
               type="email"
-              fullWidth
-              margin="normal"
-              size="small"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              autoFocus={mode !== 'register'}
             />
-            {mode !== 'forgot' && (
-              <TextField
-                label="Password"
+          </label>
+          {mode !== 'forgot' && (
+            <label className="field">
+              <span className="label">PASSWORD // пароль</span>
+              <input
+                className="input"
                 type="password"
-                fullWidth
-                margin="normal"
-                size="small"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                slotProps={{ htmlInput: { minLength: 8 } }}
+                minLength={8}
               />
-            )}
+            </label>
+          )}
 
-            {error && (
-              <FormHelperText error sx={{ mt: 1 }}>
-                {error}
-              </FormHelperText>
-            )}
+          {error && (
+            <div className="form-error mono" style={{ color: 'var(--red)' }}>
+              ⚠ {error}
+            </div>
+          )}
 
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              sx={{ mt: 2.5, height: 44, borderRadius: 2 }}
-              disabled={isLoading || forgotLoading}
-            >
-              {isLoading || forgotLoading ? (
-                <CircularProgress size={22} color="inherit" />
-              ) : mode === 'login' ? (
-                'Sign In'
-              ) : mode === 'register' ? (
-                'Sign Up'
-              ) : (
-                'Send Reset Link'
-              )}
-            </Button>
-          </form>
+          <button type="submit" className="btn btn-mag" disabled={busy} style={{ width: '100%' }}>
+            {busy ? '::: PROCESSING :::' : submitLabel}
+          </button>
 
+          <button
+            type="button"
+            className="btn btn-cyn"
+            style={{ width: '100%', marginTop: 8 }}
+            onClick={() => showSnackbar('Биометрия недоступна в этом релизе', 'info')}
+          >
+            ⊙ BIOMETRIC SCAN
+          </button>
+        </form>
+
+        <div className="modal-foot">
           {mode === 'login' && (
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{
-                mt: 1.5,
-                textAlign: 'center',
-                cursor: 'pointer',
-                '&:hover': { color: 'primary.main' },
-              }}
+            <button
+              type="button"
+              className="link-btn"
               onClick={() => {
                 setMode('forgot');
                 clearError();
               }}
             >
-              Forgot password?
-            </Typography>
+              забыли ключ?
+            </button>
           )}
-
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{
-              mt: 1.5,
-              textAlign: 'center',
-              cursor: 'pointer',
-              '&:hover': { color: 'primary.main' },
-            }}
+          <button
+            type="button"
+            className="link-btn"
             onClick={() => {
               setMode(mode === 'login' ? 'register' : 'login');
               clearError();
             }}
           >
-            {mode === 'register' ? (
-              <>
-                Already have an account? <b>Sign In</b>
-              </>
-            ) : (
-              <>
-                Don&apos;t have an account? <b>Sign Up</b>
-              </>
-            )}
-          </Typography>
-        </Box>
-      </Fade>
-    </Modal>
+            {mode === 'register' ? '← есть аккаунт · LOG IN' : 'создать узел · REGISTER →'}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }

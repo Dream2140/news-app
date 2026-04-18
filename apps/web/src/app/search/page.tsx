@@ -1,14 +1,15 @@
 import { Suspense } from 'react';
-import { CircularProgress, Box } from '@mui/material';
 import SearchContent from './SearchContent';
 
 export default function SearchPage() {
   return (
     <Suspense
       fallback={
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-          <CircularProgress />
-        </Box>
+        <div className="stage" style={{ padding: '80px 20px', textAlign: 'center' }}>
+          <div className="label mono" style={{ color: 'var(--cyn)' }}>
+            ::: BOOTING TERMINAL :::
+          </div>
+        </div>
       }
     >
       <SearchContent />
