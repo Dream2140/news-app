@@ -4,7 +4,7 @@ import CommentsList from '@/components/comments/CommentsList';
 import ShareButtons from '@/components/news/ShareButtons';
 import NewsCard from '@/components/news/NewsCard';
 import { apiClient } from '@/lib/api-client';
-import { catColor, catName, timeAgo, fmtNum } from '@/lib/categories';
+import { catColor, catName, timeAgo } from '@/lib/categories';
 import type { INews } from '@newsapp/shared';
 
 export const revalidate = 300;
@@ -72,7 +72,6 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     day: 'numeric',
   });
   const timeStr = date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-  const views = 8400 + (news._id?.length ?? 0) * 317;
 
   return (
     <div className="stage article-wrap" style={{ paddingTop: 24, paddingBottom: 48 }}>
@@ -115,10 +114,6 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
               <span className="chip-dot" />
               {catName(news.category)}
             </span>
-            <span className="chip chip-live">
-              <span className="chip-dot" />
-              BREAKING
-            </span>
             <span className="label mono" style={{ color: 'var(--ink-dim)' }}>
               · {timeAgo(news.publishedAt)} назад
             </span>
@@ -132,12 +127,6 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
       {/* ARTICLE LAYOUT */}
       <div className="article-layout">
         <aside className="article-rail">
-          <div className="rail-item">
-            <div className="label">VIEWS</div>
-            <div className="display" style={{ fontSize: 22, color: 'var(--cyn)' }}>
-              {fmtNum(views)}
-            </div>
-          </div>
           <div className="rail-item">
             <div className="label">READ</div>
             <div className="display" style={{ fontSize: 22, color: 'var(--yel)' }}>

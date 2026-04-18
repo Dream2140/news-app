@@ -11,10 +11,10 @@ export default function Footer() {
         <div className="foot-row">
           <div>
             <div className="display" style={{ fontSize: 26 }}>
-              NEURO<span style={{ color: 'var(--mag)' }}>.</span>NEWS
+              DREAM<span style={{ color: 'var(--mag)' }}>.</span>NEWS
             </div>
             <div className="mono" style={{ fontSize: 11, color: 'var(--ink-dim)', marginTop: 6 }}>
-              NEO-TOKYO MEDIA RELAY // EST. 2026
+              агрегатор сигналов
             </div>
             <div className="jp" style={{ color: 'var(--ink-ghost)', marginTop: 10 }}>
               情報は力なり
@@ -58,8 +58,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="foot-bot">
-          <span>© {new Date().getFullYear()} NEURO.NEWS · уплинк стабилен</span>
-          <span>SYSTEM: online · ping 12ms · 42°N 139°E</span>
+          <span>© {new Date().getFullYear()} Dream News</span>
         </div>
       </div>
     </footer>

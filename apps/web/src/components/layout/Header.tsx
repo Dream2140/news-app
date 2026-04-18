@@ -55,30 +55,23 @@ export default function Header() {
     <>
       <header className="site-head">
         <div className="site-head-top">
-          <Link href="/" className="brand" aria-label="NEURO.NEWS">
+          <Link href="/" className="brand" aria-label="Dream News">
             <div className="brand-mark">
               <div className="brand-hex" />
               <div className="brand-hex-inner" />
             </div>
             <div>
               <div className="brand-main">
-                <span>NEURO</span>
+                <span>DREAM</span>
                 <span className="brand-dot">.</span>
                 <span style={{ color: 'var(--mag)' }}>NEWS</span>
               </div>
-              <div className="brand-sub mono">v26.04 // NEO-TOKYO RELAY</div>
+              <div className="brand-sub mono">агрегатор сигналов</div>
             </div>
           </Link>
 
           <div className="head-meta">
-            <span>
-              UPLINK: <b style={{ color: 'var(--lim)' }}>STABLE</b>
-            </span>
-            <span>LAT 12ms</span>
-            <span>NODES 4 218</span>
-            <span>
-              東京 <b style={{ color: 'var(--cyn)' }}>14°C</b> · {time}
-            </span>
+            <span className="mono">{time}</span>
           </div>
 
           <div className="head-actions">
@@ -232,12 +225,6 @@ export default function Header() {
                 </Link>
               );
             })}
-            <div style={{ flex: 1 }} />
-            <div className="nav-counter">
-              <span>FEED/</span>
-              <b style={{ color: 'var(--mag)' }}>0042</b>
-              <span style={{ color: 'var(--ink-ghost)', marginLeft: 8 }}>· SIGNAL 97%</span>
-            </div>
           </div>
         </nav>
       </header>

@@ -74,13 +74,6 @@ export function catName(id: string | undefined | null): string {
   return getCategory(id).ru;
 }
 
-export function fmtNum(n: number): string {
-  if (n >= 1000) {
-    return (n / 1000).toFixed(1).replace('.0', '') + 'K';
-  }
-  return String(n);
-}
-
 export function timeAgo(ts: number): string {
   const s = Math.floor((Date.now() - ts) / 1000);
   if (s < 60) return s + ' сек';

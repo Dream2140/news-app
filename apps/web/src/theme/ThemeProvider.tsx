@@ -11,5 +11,3 @@ export default function ThemeProvider({ children }: { children: React.ReactNode 
     </MuiThemeProvider>
   );
 }
-
-export const useThemeMode = () => ({ mode: 'dark' as const, toggleTheme: () => {} });

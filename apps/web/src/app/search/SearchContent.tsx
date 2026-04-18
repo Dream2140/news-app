@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { apiClient } from '@/lib/api-client';
-import { CATEGORIES, catColor, catName, timeAgo, fmtNum } from '@/lib/categories';
+import { CATEGORIES, catColor, catName, timeAgo } from '@/lib/categories';
 import { NewsCategory } from '@newsapp/shared';
 import type { INews } from '@newsapp/shared';
 
@@ -157,9 +157,6 @@ export default function SearchContent() {
               <div className="label">READ</div>
               <div className="display" style={{ fontSize: 18, color: 'var(--yel)' }}>
                 {item.readingTime}м
-              </div>
-              <div className="mono" style={{ fontSize: 11, color: 'var(--cyn)', marginTop: 4 }}>
-                ▸ {fmtNum(1200 + i * 340)}
               </div>
             </div>
           </Link>

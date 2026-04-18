@@ -22,14 +22,14 @@ export const darkTheme = createTheme({
     divider: 'rgba(42,245,255,0.14)',
   },
   typography: {
-    fontFamily: '"Rajdhani", "Inter", "Roboto", sans-serif',
-    h1: { fontFamily: '"Orbitron", sans-serif', fontWeight: 800, letterSpacing: '0.02em' },
-    h2: { fontFamily: '"Orbitron", sans-serif', fontWeight: 700, letterSpacing: '0.02em' },
-    h3: { fontFamily: '"Orbitron", sans-serif', fontWeight: 700, letterSpacing: '0.02em' },
-    h4: { fontFamily: '"Orbitron", sans-serif', fontWeight: 700, letterSpacing: '0.03em' },
-    h5: { fontFamily: '"Orbitron", sans-serif', fontWeight: 600, letterSpacing: '0.04em' },
-    h6: { fontFamily: '"Orbitron", sans-serif', fontWeight: 600, letterSpacing: '0.06em' },
-    button: { fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, letterSpacing: '0.12em' },
+    fontFamily: 'var(--ui)',
+    h1: { fontFamily: 'var(--display)', fontWeight: 800, letterSpacing: '0.02em' },
+    h2: { fontFamily: 'var(--display)', fontWeight: 700, letterSpacing: '0.02em' },
+    h3: { fontFamily: 'var(--display)', fontWeight: 700, letterSpacing: '0.02em' },
+    h4: { fontFamily: 'var(--display)', fontWeight: 700, letterSpacing: '0.03em' },
+    h5: { fontFamily: 'var(--display)', fontWeight: 600, letterSpacing: '0.04em' },
+    h6: { fontFamily: 'var(--display)', fontWeight: 600, letterSpacing: '0.06em' },
+    button: { fontFamily: 'var(--ui)', fontWeight: 700, letterSpacing: '0.12em' },
   },
   shape: { borderRadius: 0 },
   components: {
@@ -60,7 +60,7 @@ export const darkTheme = createTheme({
           '& .MuiOutlinedInput-root': {
             borderRadius: 0,
             background: 'rgba(6,9,18,0.9)',
-            fontFamily: '"JetBrains Mono", monospace',
+            fontFamily: 'var(--mono)',
             fontSize: 14,
             '& fieldset': {
               borderColor: 'rgba(42,245,255,0.3)',
@@ -73,7 +73,7 @@ export const darkTheme = createTheme({
             },
           },
           '& label': {
-            fontFamily: '"Rajdhani", sans-serif',
+            fontFamily: 'var(--ui)',
             letterSpacing: '0.1em',
             textTransform: 'uppercase' as const,
             fontSize: 12,
@@ -95,7 +95,7 @@ export const darkTheme = createTheme({
       styleOverrides: {
         root: {
           borderRadius: 0,
-          fontFamily: '"Rajdhani", sans-serif',
+          fontFamily: 'var(--ui)',
           fontWeight: 700,
           letterSpacing: '0.14em',
           textTransform: 'uppercase' as const,
@@ -123,5 +123,3 @@ export const darkTheme = createTheme({
     },
   },
 });
-
-export const lightTheme = darkTheme;

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSnackbar } from '@/contexts/SnackbarContext';
 import { apiClient } from '@/lib/api-client';
@@ -21,6 +21,15 @@ export default function LoginModal({ open, onClose }: LoginModalProps) {
   const [password, setPassword] = useState('');
   const [nickname, setNickname] = useState('');
   const [forgotLoading, setForgotLoading] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, onClose]);
 
   if (!open) return null;
 
@@ -137,15 +146,6 @@ export default function LoginModal({ open, onClose }: LoginModalProps) {
 
           <button type="submit" className="btn btn-mag" disabled={busy} style={{ width: '100%' }}>
             {busy ? '::: PROCESSING :::' : submitLabel}
-          </button>
-
-          <button
-            type="button"
-            className="btn btn-cyn"
-            style={{ width: '100%', marginTop: 8 }}
-            onClick={() => showSnackbar('Биометрия недоступна в этом релизе', 'info')}
-          >
-            ⊙ BIOMETRIC SCAN
           </button>
         </form>
 

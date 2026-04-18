@@ -38,8 +38,8 @@ const notoJp = Noto_Sans_JP({
 });
 
 export const metadata: Metadata = {
-  title: 'NEURO.NEWS — Neo-Tokyo Media Relay',
-  description: 'Нейросеть агрегирует сигналы с 4 218 источников в реальном времени.',
+  title: 'Dream News',
+  description: 'Агрегатор новостей — технологии, киберспорт, политика, культура.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

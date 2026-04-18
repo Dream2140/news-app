@@ -1,18 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { TICKER_ITEMS, type TickerItem } from '@/lib/demo';
 
-const TICKER_ITEMS = [
-  { tag: 'BREAKING', text: 'Synaptix получил FDA-разрешение на клинические испытания →' },
-  { tag: 'MARKETS', text: 'NVDA +4.2%  TSLA −1.8%  BTC $118 420  ETH $4 011' },
-  { tag: 'CYBERSPORT', text: 'T1 взяли LCK 3:2 — Faker MVP восьмой раз' },
-  { tag: 'LIVE', text: 'Starship V3 прямой эфир — T-00:43:12' },
-  { tag: 'TECH', text: 'OpenAI O5 вышел в закрытое превью — waitlist открыт' },
-  { tag: 'POLITIC', text: 'ЕС одобрил квантовый акт — 412 за, 68 против' },
-  { tag: 'WEATHER', text: 'Токио 14°C дождь PM2.5: 28 уровень шума: 62 dB' },
-];
+interface TickerProps {
+  items?: TickerItem[];
+}
 
-export default function Ticker() {
+export default function Ticker({ items = TICKER_ITEMS }: TickerProps) {
   const [time, setTime] = useState<string>('');
 
   useEffect(() => {
@@ -29,7 +24,10 @@ export default function Ticker() {
     return () => clearInterval(t);
   }, []);
 
-  const stream = TICKER_ITEMS.concat(TICKER_ITEMS);
+  if (items.length === 0) return null;
+
+  // Duplicate once for seamless CSS marquee.
+  const stream = items.concat(items);
 
   return (
     <div className="ticker">
@@ -48,18 +46,7 @@ export default function Ticker() {
           ))}
         </div>
       </div>
-      <div
-        style={{
-          padding: '0 14px',
-          borderLeft: '1px solid var(--line)',
-          fontFamily: 'var(--mono)',
-          fontSize: 11,
-          color: 'var(--ink-dim)',
-          whiteSpace: 'nowrap',
-        }}
-      >
-        {time}
-      </div>
+      <div className="ticker-clock mono">{time}</div>
     </div>
   );
 }

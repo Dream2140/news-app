@@ -23,16 +23,19 @@ export default function ShareButtons({ title }: ShareButtonsProps) {
     window.open(
       `https://x.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(getUrl())}`,
       '_blank',
+      'noopener,noreferrer',
     );
   const shareTelegram = () =>
     window.open(
       `https://t.me/share/url?url=${encodeURIComponent(getUrl())}&text=${encodeURIComponent(title)}`,
       '_blank',
+      'noopener,noreferrer',
     );
   const shareFacebook = () =>
     window.open(
       `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(getUrl())}`,
       '_blank',
+      'noopener,noreferrer',
     );
 
   return (

@@ -1,8 +1,8 @@
 /* ============================================================
-   NEURO.NEWS // NEO-TOKYO OS
+   DREAM NEWS — cyberpunk skin
+   Fonts are loaded by next/font in app/layout.tsx and exposed as
+   --font-orbitron / --font-rajdhani / --font-jetbrains / --font-noto-jp.
    ============================================================ */
-
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800;900&family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+JP:wght@400;700&display=swap');
 
 :root {
   --bg-0: #05060d;
@@ -36,9 +36,9 @@
   --noise: 0.05;
   --rain: 0.8;
 
-  --mono: 'JetBrains Mono', ui-monospace, monospace;
-  --ui: 'Rajdhani', 'Noto Sans JP', system-ui, sans-serif;
-  --display: 'Orbitron', 'Rajdhani', sans-serif;
+  --mono: var(--font-jetbrains), ui-monospace, monospace;
+  --ui: var(--font-rajdhani), var(--font-noto-jp), system-ui, sans-serif;
+  --display: var(--font-orbitron), var(--font-rajdhani), sans-serif;
 }
 
 * {
@@ -2588,5 +2588,24 @@ main {
   }
   .modal-frame {
     padding: 20px;
+  }
+}
+
+/* ---------- REDUCED MOTION ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .glitch::before,
+  .glitch::after {
+    display: none;
+  }
+  .fx-scanlines,
+  .fx-noise {
+    display: none;
   }
 }

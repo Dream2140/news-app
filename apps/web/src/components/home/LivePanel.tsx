@@ -2,6 +2,11 @@
 
 import { useEffect, useState } from 'react';
 
+/**
+ * Decorative live-feed panel. The metrics and graph are demo values (no backend
+ * metrics endpoint exists yet) — the "DEMO" tag is intentional so the visual
+ * noise doesn't masquerade as real data.
+ */
 export default function LivePanel() {
   const [tick, setTick] = useState(0);
 
@@ -9,21 +14,6 @@ export default function LivePanel() {
     const t = setInterval(() => setTick((x) => x + 1), 1400);
     return () => clearInterval(t);
   }, []);
-
-  const metrics = [
-    {
-      label: 'VIEWERS',
-      value: (2418044 + ((tick * 37) % 9000)).toLocaleString('ru-RU'),
-      color: 'var(--cyn)',
-    },
-    { label: 'BREAKING/H', value: String(14 + (tick % 5)), color: 'var(--red)' },
-    { label: 'SIGNAL/Q', value: '97.' + (10 + (tick % 90)) + '%', color: 'var(--lim)' },
-    {
-      label: 'TREND INDEX',
-      value: (72.4 + Math.sin(tick / 3) * 6).toFixed(1),
-      color: 'var(--mag)',
-    },
-  ];
 
   const bars = Array.from(
     { length: 24 },
@@ -40,23 +30,15 @@ export default function LivePanel() {
       >
         <span className="chip chip-live">
           <span className="chip-dot" />
-          LIVE · REALTIME
+          LIVE · DEMO
         </span>
-        <span className="label mono">updated 00:0{tick % 10}</span>
-      </div>
-      <div className="live-grid">
-        {metrics.map((m) => (
-          <div key={m.label} className="live-cell">
-            <div className="label">{m.label}</div>
-            <div className="display" style={{ fontSize: 28, color: m.color, marginTop: 4 }}>
-              {m.value}
-            </div>
-          </div>
-        ))}
+        <span className="label mono" style={{ color: 'var(--ink-ghost)' }}>
+          visualization
+        </span>
       </div>
       <div className="live-graph">
         <div className="label" style={{ margin: '0 0 8px' }}>
-          GLOBAL ENGAGEMENT // 24H
+          SIGNAL WAVEFORM // 24H
         </div>
         <div className="bar-row">
           {bars.map((h, i) => (

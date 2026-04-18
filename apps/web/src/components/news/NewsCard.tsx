@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { catColor, catName, timeAgo, fmtNum } from '@/lib/categories';
+import { catColor, catName, timeAgo } from '@/lib/categories';
 
 interface NewsCardProps {
   loading?: boolean;
@@ -16,8 +16,6 @@ interface NewsCardProps {
   source?: string;
   publishedAt?: number;
   variant?: 'default' | 'hero' | 'wide';
-  breaking?: boolean;
-  views?: number;
 }
 
 function isValidUrl(str: string): boolean {
@@ -28,6 +26,9 @@ function isValidUrl(str: string): boolean {
     return false;
   }
 }
+
+// Articles published within this window render with a BREAKING chip.
+const BREAKING_WINDOW_MS = 60 * 60 * 1000;
 
 export default function NewsCard({
   loading,
@@ -40,10 +41,13 @@ export default function NewsCard({
   source,
   publishedAt,
   variant = 'default',
-  breaking = false,
-  views,
 }: NewsCardProps) {
   const [imgError, setImgError] = useState(false);
+  // Capture "now" once per mount so the breaking flag stays stable across re-renders
+  // and satisfies the react-hooks/purity rule.
+  const [mountedAt] = useState(() => Date.now());
+  const isBreaking =
+    !loading && publishedAt !== undefined && mountedAt - publishedAt < BREAKING_WINDOW_MS;
 
   const content = (
     <>
@@ -74,7 +78,7 @@ export default function NewsCard({
                 {catName(category)}
               </span>
             )}
-            {breaking && (
+            {isBreaking && (
               <span className="chip chip-live">
                 <span className="chip-dot" />
                 BREAKING
@@ -89,14 +93,7 @@ export default function NewsCard({
       <div className="card-body">
         {loading ? (
           <>
-            <div
-              style={{
-                height: 20,
-                background: 'var(--bg-2)',
-                width: '85%',
-                marginBottom: 6,
-              }}
-            />
+            <div style={{ height: 20, background: 'var(--bg-2)', width: '85%', marginBottom: 6 }} />
             <div style={{ height: 20, background: 'var(--bg-2)', width: '60%' }} />
           </>
         ) : (
@@ -110,9 +107,6 @@ export default function NewsCard({
                 {source ? source.toUpperCase() : '—'}
                 {publishedAt ? ' · ' + timeAgo(publishedAt) : ''}
               </span>
-              {views !== undefined && (
-                <span style={{ color: 'var(--cyn)' }}>▸ {fmtNum(views)}</span>
-              )}
             </div>
           </>
         )}

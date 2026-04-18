@@ -1,40 +1,20 @@
 'use client';
 
 import { useState } from 'react';
+import { WORLD_HOTSPOTS, type WorldHotspot } from '@/lib/demo';
 
-interface Spot {
-  lat: number;
-  lng: number;
-  city: string;
-  intensity: number;
-  count: number;
+interface WorldMapProps {
+  hotspots?: WorldHotspot[];
 }
-
-const HOTSPOTS: Spot[] = [
-  { lat: 35.68, lng: 139.65, city: 'TOKYO', intensity: 0.95, count: 142 },
-  { lat: 37.56, lng: 126.97, city: 'SEOUL', intensity: 0.88, count: 98 },
-  { lat: 50.85, lng: 4.35, city: 'BRUSSELS', intensity: 0.62, count: 41 },
-  { lat: 42.36, lng: -71.05, city: 'BOSTON', intensity: 0.7, count: 56 },
-  { lat: 37.77, lng: -122.41, city: 'SF BAY', intensity: 0.91, count: 120 },
-  { lat: 1.35, lng: 103.82, city: 'SINGAPORE', intensity: 0.54, count: 32 },
-  { lat: 52.23, lng: 21.01, city: 'WARSAW', intensity: 0.74, count: 58 },
-  { lat: 24.71, lng: 46.67, city: 'RIYADH', intensity: 0.48, count: 22 },
-  { lat: 51.51, lng: -0.13, city: 'LONDON', intensity: 0.82, count: 89 },
-  { lat: 55.75, lng: 37.62, city: 'MOSCOW', intensity: 0.66, count: 47 },
-  { lat: 39.9, lng: 116.4, city: 'BEIJING', intensity: 0.79, count: 71 },
-  { lat: -33.86, lng: 151.2, city: 'SYDNEY', intensity: 0.38, count: 14 },
-  { lat: -23.55, lng: -46.63, city: 'SÃO PAULO', intensity: 0.52, count: 28 },
-];
 
 const proj = (lat: number, lng: number) => ({
   x: (lng + 180) * (1000 / 360),
   y: (90 - lat) * (500 / 180),
 });
 
-export default function WorldMap() {
-  const [hovered, setHovered] = useState<Spot | null>(null);
-  const pts = HOTSPOTS;
-  const totalSignals = pts.reduce((a, p) => a + p.count, 0);
+export default function WorldMap({ hotspots = WORLD_HOTSPOTS }: WorldMapProps) {
+  const [hovered, setHovered] = useState<WorldHotspot | null>(null);
+  const totalSignals = hotspots.reduce((a, p) => a + p.count, 0);
 
   return (
     <div className="map-wrap frame">
@@ -49,7 +29,7 @@ export default function WorldMap() {
           <span className="label">realtime · последние 60 мин</span>
         </div>
         <div className="mono" style={{ fontSize: 11, color: 'var(--ink-dim)' }}>
-          {totalSignals} signals · {pts.length} nodes active
+          {totalSignals} signals · {hotspots.length} nodes active
         </div>
       </div>
       <div className="map-svg-wrap">
@@ -82,9 +62,9 @@ export default function WorldMap() {
             <path d="M 790 340 q 40 -10 70 10 q 20 30 -10 50 q -40 20 -70 10 q -30 -20 0 -50 q 5 -15 10 -20 z" />
           </g>
           <g stroke="rgba(255,43,214,0.25)" strokeWidth="0.6" fill="none">
-            {pts.slice(0, 8).map((p, i) => {
+            {hotspots.slice(0, 8).map((p, i) => {
               const a = proj(p.lat, p.lng);
-              const next = pts[(i + 1) % pts.length];
+              const next = hotspots[(i + 1) % hotspots.length];
               const b = proj(next.lat, next.lng);
               return (
                 <path
@@ -95,7 +75,7 @@ export default function WorldMap() {
               );
             })}
           </g>
-          {pts.map((p, i) => {
+          {hotspots.map((p, i) => {
             const { x, y } = proj(p.lat, p.lng);
             const r = 3 + p.intensity * 6;
             const glow = p.intensity > 0.75 ? 'url(#glowM)' : 'url(#glowC)';
@@ -126,13 +106,7 @@ export default function WorldMap() {
         </svg>
         {hovered && (
           <div className="map-tip">
-            <div
-              style={{
-                color: 'var(--mag)',
-                fontWeight: 700,
-                letterSpacing: '0.14em',
-              }}
-            >
+            <div style={{ color: 'var(--mag)', fontWeight: 700, letterSpacing: '0.14em' }}>
               {hovered.city}
             </div>
             <div>

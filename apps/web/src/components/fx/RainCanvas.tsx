@@ -11,6 +11,10 @@ export default function RainCanvas() {
     const ctx = c.getContext('2d');
     if (!ctx) return;
 
+    // Skip the rain on narrow viewports and when the user prefers reduced motion.
+    if (window.innerWidth < 720) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
     let W = 0;
     let H = 0;
     let drops: {
